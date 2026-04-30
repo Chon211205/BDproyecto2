@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16
+    container_name: proyecto2_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/src/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+
+  backend:
+    build: ./backend
+    container_name: proyecto2_backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT}:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: proyecto2_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: proy2@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: secret
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
