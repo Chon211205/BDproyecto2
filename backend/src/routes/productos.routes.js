@@ -3,9 +3,14 @@ const db = require('../database/db')
 
 const router = express.Router()
 
-router.get('/', (req, res) => {
-  const productos = db.prepare('SELECT * FROM producto').all()
-  res.json(productos)
+router.get('/', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM producto ORDER BY idProducto')
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener productos' })
+  }
 })
 
 module.exports = router
