@@ -1,54 +1,28 @@
 import { useEffect, useState } from 'react'
-import { getProductos } from '../services/api'
 
 function Productos() {
   const [productos, setProductos] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
-    getProductos()
+    fetch('http://localhost:3000/api/productos')
+      .then(res => res.json())
       .then(data => {
+        console.log(data)
         setProductos(data)
-        setCargando(false)
       })
-      .catch(() => {
-        setError('No se pudieron cargar los productos')
-        setCargando(false)
-      })
+      .catch(err => console.error(err))
   }, [])
-
-  if (cargando) return <p>Cargando productos...</p>
-  if (error) return <p>{error}</p>
 
   return (
     <div>
       <h1>Productos</h1>
+      <p>Total: {productos.length}</p>
 
-      <table border="1" cellPadding="8">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Producto</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Categoría</th>
-            <th>Proveedor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map(producto => (
-            <tr key={producto.idproducto}>
-              <td>{producto.idproducto}</td>
-              <td>{producto.nombreproducto}</td>
-              <td>Q{producto.precio}</td>
-              <td>{producto.stock}</td>
-              <td>{producto.idcategoria}</td>
-              <td>{producto.idproveedor}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {productos.map(producto => (
+        <p key={producto.idproducto}>
+          {producto.idproducto} - {producto.nombreproducto}
+        </p>
+      ))}
     </div>
   )
 }
