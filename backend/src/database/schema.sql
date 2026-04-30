@@ -1,0 +1,101 @@
+CREATE TABLE cliente (
+    idCliente INT PRIMARY KEY,
+    nombreCliente VARCHAR(100) NOT NULL,
+    apellidoCliente VARCHAR(100) NOT NULL,
+    correoCliente VARCHAR(150) NOT NULL UNIQUE,
+    telefonoCliente VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE direccion_cliente (
+    idDireccion INT PRIMARY KEY,
+    direccionCliente VARCHAR(200) NOT NULL,
+    ciudad VARCHAR(100) NOT NULL,
+    idCliente INT NOT NULL,
+    CONSTRAINT fk_direccion_cliente_cliente
+        FOREIGN KEY (idCliente) REFERENCES cliente(idCliente)
+);
+
+CREATE TABLE empleado (
+    idEmpleado INT PRIMARY KEY,
+    nombreEmpleado VARCHAR(100) NOT NULL,
+    apellidoEmpleado VARCHAR(100) NOT NULL,
+    puesto VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE categoria (
+    idCategoria INT PRIMARY KEY,
+    nombreCategoria VARCHAR(100) NOT NULL,
+    descripcionCategoria VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE proveedor (
+    idProveedor INT PRIMARY KEY,
+    nombreProveedor VARCHAR(150) NOT NULL,
+    telefonoProveedor VARCHAR(20) NOT NULL,
+    correoProveedor VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE producto (
+    idProducto INT PRIMARY KEY,
+    nombreProducto VARCHAR(150) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL CHECK (precio >= 0),
+    stock INT NOT NULL CHECK (stock >= 0),
+    idCategoria INT NOT NULL,
+    idProveedor INT NOT NULL,
+    CONSTRAINT fk_producto_categoria
+        FOREIGN KEY (idCategoria) REFERENCES categoria(idCategoria),
+    CONSTRAINT fk_producto_proveedor
+        FOREIGN KEY (idProveedor) REFERENCES proveedor(idProveedor)
+);
+
+CREATE TABLE inventario_movimiento (
+    idMovimiento INT PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('entrada', 'salida')),
+    cantidad INT NOT NULL CHECK (cantidad > 0),
+    fecha DATE NOT NULL,
+    idProducto INT NOT NULL,
+    CONSTRAINT fk_inventario_movimiento_producto
+        FOREIGN KEY (idProducto) REFERENCES producto(idProducto)
+);
+
+CREATE TABLE venta (
+    idVenta INT PRIMARY KEY,
+    fecha DATE NOT NULL,
+    total DECIMAL(10,2) NOT NULL CHECK (total >= 0),
+    idCliente INT NOT NULL,
+    idEmpleado INT NOT NULL,
+    CONSTRAINT fk_venta_cliente
+        FOREIGN KEY (idCliente) REFERENCES cliente(idCliente),
+    CONSTRAINT fk_venta_empleado
+        FOREIGN KEY (idEmpleado) REFERENCES empleado(idEmpleado)
+);
+
+CREATE TABLE detalle_venta (
+    idDetalle INT PRIMARY KEY,
+    idVenta INT NOT NULL,
+    idProducto INT NOT NULL,
+    cantidad INT NOT NULL CHECK (cantidad > 0),
+    precioUnitario DECIMAL(10,2) NOT NULL CHECK (precioUnitario >= 0),
+    subtotal DECIMAL(10,2) NOT NULL CHECK (subtotal >= 0),
+    CONSTRAINT fk_detalle_venta_venta
+        FOREIGN KEY (idVenta) REFERENCES venta(idVenta),
+    CONSTRAINT fk_detalle_venta_producto
+        FOREIGN KEY (idProducto) REFERENCES producto(idProducto)
+);
+
+CREATE TABLE metodo_pago (
+    idMetodoPago INT PRIMARY KEY,
+    tipoMetodoPago VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE pago (
+    idPago INT PRIMARY KEY,
+    monto DECIMAL(10,2) NOT NULL CHECK (monto >= 0),
+    fecha DATE NOT NULL,
+    idVenta INT NOT NULL,
+    idMetodoPago INT NOT NULL,
+    CONSTRAINT fk_pago_venta
+        FOREIGN KEY (idVenta) REFERENCES venta(idVenta),
+    CONSTRAINT fk_pago_metodo_pago
+        FOREIGN KEY (idMetodoPago) REFERENCES metodo_pago(idMetodoPago)
+);
