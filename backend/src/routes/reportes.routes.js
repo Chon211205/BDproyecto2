@@ -122,4 +122,62 @@ router.get('/productos-precio-promedio', async (req, res) => {
   }
 })
 
+router.get('/dashboard', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        (SELECT COUNT(*) FROM producto) AS totalProductos,
+        (SELECT COUNT(*) FROM cliente) AS totalClientes,
+        (SELECT COUNT(*) FROM venta) AS totalVentas,
+        COALESCE((SELECT SUM(total) FROM venta), 0) AS totalVendido;
+    `)
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener resumen del dashboard' })
+  }
+})
+
+router.get('/dashboard/productos-destacados', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        p.idProducto,
+        p.nombreProducto,
+        p.precio,
+        c.nombreCategoria
+      FROM producto p
+      JOIN categoria c ON p.idCategoria = c.idCategoria
+      ORDER BY p.precio DESC
+      LIMIT 3;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener productos destacados' })
+  }
+})
+
+router.get('/dashboard/ultimas-ventas', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        v.idVenta,
+        c.nombreCliente || ' ' || c.apellidoCliente AS cliente,
+        v.total
+      FROM venta v
+      JOIN cliente c ON v.idCliente = c.idCliente
+      ORDER BY v.fecha DESC, v.idVenta DESC
+      LIMIT 5;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener últimas ventas' })
+  }
+})
+
 module.exports = router
