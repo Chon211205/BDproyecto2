@@ -28,4 +28,31 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/:id/detalle', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await db.query(
+      `
+      SELECT
+        dv.idDetalle,
+        p.nombreProducto,
+        dv.cantidad,
+        dv.precioUnitario,
+        dv.subtotal
+      FROM detalle_venta dv
+      JOIN producto p ON dv.idProducto = p.idProducto
+      WHERE dv.idVenta = $1
+      ORDER BY dv.idDetalle;
+      `,
+      [id]
+    )
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener detalle de venta' })
+  }
+})
+
 module.exports = router

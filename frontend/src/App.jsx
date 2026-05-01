@@ -9,6 +9,7 @@ import Proveedores from './pages/Proveedores'
 import Empleados from './pages/Empleados'
 import Direcciones from './pages/Direcciones'
 import Inventario from './pages/Inventario'
+import DetalleVenta from './pages/DetalleVenta'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
         <Route path="/empleados" element={<Empleados />} />
         <Route path="/direcciones" element={<Direcciones />} />
         <Route path="/inventario" element={<Inventario />} />
+        <Route path="/ventas/:id/detalle" element={<DetalleVenta />} />
         
         
       </Routes>
