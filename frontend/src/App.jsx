@@ -11,6 +11,7 @@ import Direcciones from './pages/Direcciones'
 import Inventario from './pages/Inventario'
 import DetalleVenta from './pages/DetalleVenta'
 import EditarProducto from './pages/EditarProducto'
+import EditarCategoria from './pages/EditarCategoria'
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         <Route path="/inventario" element={<Inventario />} />
         <Route path="/ventas/:id/detalle" element={<DetalleVenta />} />
         <Route path="/productos/:id/editar" element={<EditarProducto />} />
+        <Route path="/categorias/:id/editar" element={<EditarCategoria />} />
         
         
       </Routes>

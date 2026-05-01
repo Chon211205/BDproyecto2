@@ -7,6 +7,7 @@ function Categorias() {
   const [editandoId, setEditandoId] = useState(null)
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   const [form, setForm] = useState({
     nombreCategoria: '',
@@ -18,6 +19,26 @@ function Categorias() {
       .then(res => res.json())
       .then(data => setCategorias(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar las categorías'))
+  }
+
+  function abrirFormularioNuevo() {
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+    setForm({
+      nombreCategoria: '',
+      descripcionCategoria: ''
+    })
+  }
+
+  function cancelarFormulario() {
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+    setForm({
+      nombreCategoria: '',
+      descripcionCategoria: ''
+    })
   }
 
   useEffect(() => {
@@ -64,6 +85,7 @@ function Categorias() {
         }
 
         setMensaje(editandoId ? 'Categoría actualizada correctamente' : 'Categoría creada correctamente')
+        setMostrarFormulario(false)
         setEditandoId(null)
         setForm({
           nombreCategoria: '',
@@ -116,49 +138,58 @@ function Categorias() {
           <p>Administra las categorías utilizadas para organizar los productos.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar categoría
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>{editandoId ? 'Editar categoría' : 'Agregar categoría'}</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>Agregar categoría</h3>
+                <p>Registra una nueva categoría para organizar los productos.</p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarCategoria}>
-          <input
-            name="nombreCategoria"
-            placeholder="Nombre de la categoría"
-            value={form.nombreCategoria}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="descripcionCategoria"
-            placeholder="Descripción"
-            value={form.descripcionCategoria}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarCategoria}>
+              <input
+                name="nombreCategoria"
+                placeholder="Nombre de la categoría"
+                value={form.nombreCategoria}
+                onChange={handleChange}
+              />
 
-          <button className="primaryButton" type="submit">
-            {editandoId ? 'Actualizar categoría' : 'Guardar categoría'}
-          </button>
+              <input
+                name="descripcionCategoria"
+                placeholder="Descripción"
+                value={form.descripcionCategoria}
+                onChange={handleChange}
+              />
 
-          {editandoId && (
-            <button
-              className="secondaryButton"
-              type="button"
-              onClick={cancelarEdicion}
-            >
-              Cancelar
-            </button>
-          )}
-        </form>
-      </div>
+              <button className="primaryButton" type="submit">
+                Guardar categoría
+              </button>
+            </form>
+          </div>
 
-      <br />
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -176,17 +207,21 @@ function Categorias() {
             {categorias.map(categoria => (
               <tr key={categoria.idcategoria}>
                 <td>{categoria.idcategoria}</td>
+
                 <td>
                   <strong>{categoria.nombrecategoria}</strong>
                 </td>
+
                 <td>{categoria.descripcioncategoria}</td>
+
                 <td>
                   <span className="badge success">Activa</span>
                 </td>
+
                 <td className="actions">
                   <button
                     className="secondaryButton"
-                    onClick={() => cargarEdicion(categoria)}
+                    onClick={() => navigate(`/categorias/${categoria.idcategoria}/editar`)}
                   >
                     Editar
                   </button>
