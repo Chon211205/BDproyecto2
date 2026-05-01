@@ -206,4 +206,51 @@ router.get('/movimientos-producto', async (req, res) => {
   }
 })
 
+router.get('/clientes-con-compras', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        idCliente,
+        nombreCliente,
+        apellidoCliente,
+        correoCliente,
+        telefonoCliente
+      FROM cliente
+      WHERE idCliente IN (
+        SELECT idCliente
+        FROM venta
+      )
+      ORDER BY idCliente;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener clientes con compras' })
+  }
+})
+
+router.get('/productos-sin-ventas', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        idProducto,
+        nombreProducto,
+        precio,
+        stock
+      FROM producto
+      WHERE idProducto NOT IN (
+        SELECT idProducto
+        FROM detalle_venta
+      )
+      ORDER BY idProducto;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener productos sin ventas' })
+  }
+})
+
 module.exports = router

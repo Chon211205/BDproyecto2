@@ -11,6 +11,8 @@ function Reportes() {
   const [error, setError] = useState('')
   const [clientesDirecciones, setClientesDirecciones] = useState([])
   const [movimientosProducto, setMovimientosProducto] = useState([])
+  const [clientesCompras, setClientesCompras] = useState([])
+  const [productosSinVentas, setProductosSinVentas] = useState([])
 
   useEffect(() => {
     async function cargarReportes() {
@@ -32,6 +34,16 @@ function Reportes() {
 
         const resMovimientos = await fetch('http://localhost:3000/api/reportes/movimientos-producto')
         const dataMovimientos = await resMovimientos.json()
+
+        const resClientesCompras = await fetch('http://localhost:3000/api/reportes/clientes-con-compras')
+        const dataClientesCompras = await resClientesCompras.json()
+
+        const resSinVentas = await fetch('http://localhost:3000/api/reportes/productos-sin-ventas')
+        const dataSinVentas = await resSinVentas.json()
+
+setProductosSinVentas(Array.isArray(dataSinVentas) ? dataSinVentas : [])
+
+setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : [])
 
         setVentasClientes(Array.isArray(dataVentas) ? dataVentas : [])
         setProductosVendidos(Array.isArray(dataVendidos) ? dataVendidos : [])
@@ -87,6 +99,18 @@ function Reportes() {
           <h2>{productosPromedio.length}</h2>
           <p>Precio sobre promedio</p>
         </div>
+      
+        <div className="card">
+          <span>SUBQUERY</span>
+          <h2>{clientesCompras.length}</h2>
+          <p>Clientes con compras</p>
+        </div>
+
+        <div className="card">
+          <span>SUBQUERY</span>
+          <h2>{productosSinVentas.length}</h2>
+          <p>Productos sin ventas</p>
+        </div>
 
         <div className="card">
           <span>JOIN</span>
@@ -100,6 +124,7 @@ function Reportes() {
         <h2>{movimientosProducto.length}</h2>
         <p>Movimientos por producto</p>
       </div>
+
 
       <div className="panel">
         <h3>Reporte 1: Ventas con cliente y empleado (JOIN)</h3>
@@ -285,6 +310,70 @@ function Reportes() {
           </tbody>
         </table>
       </div>     
+
+      <br />
+
+      <div className="panel">
+        <h3>Reporte: Clientes que realizaron compras (Subquery IN)</h3>
+        <p>
+          Este reporte muestra los clientes cuyo ID aparece dentro de la tabla venta.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Cliente</th>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {clientesCompras.map(cliente => (
+              <tr key={cliente.idcliente}>
+                <td>{cliente.idcliente}</td>
+                <td>
+                  {cliente.nombrecliente} {cliente.apellidocliente}
+                </td>
+                <td>{cliente.correocliente}</td>
+                <td>{cliente.telefonocliente}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <br />
+
+      <div className="panel">
+        <h3>Reporte: Productos sin ventas (Subquery NOT IN)</h3>
+        <p>
+          Este reporte muestra los productos que todavía no aparecen en ningún detalle de venta.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Producto</th>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {productosSinVentas.map(producto => (
+              <tr key={producto.idproducto}>
+                <td>{producto.idproducto}</td>
+                <td>{producto.nombreproducto}</td>
+                <td>Q{producto.precio}</td>
+                <td>{producto.stock}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
     </div>
   )
