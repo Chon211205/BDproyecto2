@@ -23,6 +23,34 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await db.query(
+      `
+      SELECT 
+        idEmpleado,
+        nombreEmpleado,
+        apellidoEmpleado,
+        puesto
+      FROM empleado
+      WHERE idEmpleado = $1;
+      `,
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Empleado no encontrado' })
+    }
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener empleado' })
+  }
+})
+
 // CREATE
 router.post('/', async (req, res) => {
   try {

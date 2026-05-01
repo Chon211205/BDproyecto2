@@ -15,6 +15,7 @@ import EditarCategoria from './pages/EditarCategoria'
 import EditarProveedor from './pages/EditarProveedor'
 import EditarCliente from './pages/EditarCliente'
 import EditarDireccion from './pages/EditarDireccion'
+import EditarEmpleado from './pages/EditarEmpleado'
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
         <Route path="/proveedores/:id/editar" element={<EditarProveedor />} />
         <Route path="/clientes/:id/editar" element={<EditarCliente />} />
         <Route path="/direcciones/:id/editar" element={<EditarDireccion />} />
+        <Route path="/empleados/:id/editar" element={<EditarEmpleado />} />
         
         
       </Routes>

@@ -7,6 +7,7 @@ function Empleados() {
   const [editandoId, setEditandoId] = useState(null)
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   const [form, setForm] = useState({
     nombreEmpleado: '',
@@ -19,6 +20,30 @@ function Empleados() {
       .then(res => res.json())
       .then(data => setEmpleados(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar los empleados'))
+  }
+
+  function abrirFormularioNuevo() {
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreEmpleado: '',
+      apellidoEmpleado: '',
+      puesto: ''
+    })
+  }
+
+  function cancelarFormulario() {
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreEmpleado: '',
+      apellidoEmpleado: '',
+      puesto: ''
+    })
   }
 
   useEffect(() => {
@@ -66,6 +91,7 @@ function Empleados() {
         }
 
         setMensaje(editandoId ? 'Empleado actualizado correctamente' : 'Empleado creado correctamente')
+        setMostrarFormulario(false)
         setEditandoId(null)
         setForm({
           nombreEmpleado: '',
@@ -120,56 +146,71 @@ function Empleados() {
           <p>Administra el personal que atiende las ventas de la tienda.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar empleado
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>{editandoId ? 'Editar empleado' : 'Agregar empleado'}</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>Agregar empleado</h3>
+                <p>Registra un nuevo empleado dentro del sistema.</p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarEmpleado}>
-          <input
-            name="nombreEmpleado"
-            placeholder="Nombre"
-            value={form.nombreEmpleado}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="apellidoEmpleado"
-            placeholder="Apellido"
-            value={form.apellidoEmpleado}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarEmpleado}>
+              <input
+                name="nombreEmpleado"
+                placeholder="Nombre"
+                value={form.nombreEmpleado}
+                onChange={handleChange}
+              />
 
-          <input
-            name="puesto"
-            placeholder="Puesto"
-            value={form.puesto}
-            onChange={handleChange}
-          />
+              <input
+                name="apellidoEmpleado"
+                placeholder="Apellido"
+                value={form.apellidoEmpleado}
+                onChange={handleChange}
+              />
 
-          <button className="primaryButton" type="submit">
-            {editandoId ? 'Actualizar empleado' : 'Guardar empleado'}
-          </button>
+              <select
+                name="puesto"
+                value={form.puesto}
+                onChange={handleChange}
+              >
+                <option value="">Seleccionar puesto</option>
+                <option value="Cajero">Cajero</option>
+                <option value="Vendedor">Vendedor</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Administrador">Administrador</option>
+                <option value="Bodeguero">Bodeguero</option>
+              </select>
 
-          {editandoId && (
-            <button
-              className="secondaryButton"
-              type="button"
-              onClick={cancelarEdicion}
-            >
-              Cancelar
-            </button>
-          )}
-        </form>
-      </div>
+              <button className="primaryButton" type="submit">
+                Guardar empleado
+              </button>
+            </form>
+          </div>
 
-      <br />
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -187,19 +228,23 @@ function Empleados() {
             {empleados.map(empleado => (
               <tr key={empleado.idempleado}>
                 <td>{empleado.idempleado}</td>
+
                 <td>
                   <strong>
                     {empleado.nombreempleado} {empleado.apellidoempleado}
                   </strong>
                 </td>
+
                 <td>{empleado.puesto}</td>
+
                 <td>
                   <span className="badge success">Activo</span>
                 </td>
+
                 <td className="actions">
                   <button
                     className="secondaryButton"
-                    onClick={() => cargarEdicion(empleado)}
+                    onClick={() => navigate(`/empleados/${empleado.idempleado}/editar`)}
                   >
                     Editar
                   </button>
