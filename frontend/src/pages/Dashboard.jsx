@@ -33,6 +33,12 @@ function Dashboard() {
           <span>Total vendido</span>
           <h2>Q850</h2>
         </div>
+
+        <div className="card clickable" onClick={() => navigate('/categorias')}>
+          <span>Categorías</span>
+          <h2>25</h2>
+        </div>
+        
       </div>
 
       <div className="grid">

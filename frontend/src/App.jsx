@@ -4,6 +4,7 @@ import Productos from './pages/Productos'
 import Reportes from './pages/Reportes'
 import Clientes from './pages/Clientes'
 import Ventas from './pages/Ventas'
+import Categorias from './pages/Categorias'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Link to="/reportes">Reportes</Link>
           <Link to="/clientes">Clientes</Link>
           <Link to="/ventas">Ventas</Link>
+          <Link to="/categorias">Categorías</Link>
         </div>
       </div>
 
@@ -26,6 +28,7 @@ function App() {
         <Route path="/reportes" element={<Reportes />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/ventas" element={<Ventas />} />
+        <Route path="/categorias" element={<Categorias />} />
         
       </Routes>
     </BrowserRouter>
