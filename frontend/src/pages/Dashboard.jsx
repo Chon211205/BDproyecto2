@@ -14,44 +14,54 @@ function Dashboard() {
 
       <div className="cards">
 
-        <div className="card clickable" onClick={() => navigate('/productos')}>
-          <span>Productos</span>
-          <h2>25</h2>
-        </div>
+        <div className="cards">
+          <div className="card clickable" onClick={() => navigate('/productos')}>
+            <span>Inventario</span>
+            <h2>Productos</h2>
+            <p>Administrar productos</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/clientes')}>
-          <span>Clientes</span>
-          <h2>25</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/categorias')}>
+            <span>Clasificación</span>
+            <h2>Categorías</h2>
+            <p>Organizar productos</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/ventas')}>
-          <span>Ventas</span>
-          <h2>25</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/proveedores')}>
+            <span>Suministro</span>
+            <h2>Proveedores</h2>
+            <p>Gestionar proveedores</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/reportes')}>
-          <span>Total vendido</span>
-          <h2>Q850</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/clientes')}>
+            <span>Clientes</span>
+            <h2>Clientes</h2>
+            <p>Administrar compradores</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/categorias')}>
-          <span>Categorías</span>
-          <h2>25</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/direcciones')}>
+            <span>Ubicación</span>
+            <h2>Direcciones</h2>
+            <p>Direcciones de clientes</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/proveedores')}>
-          <span>Proveedores</span>
-          <h2>25</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/empleados')}>
+            <span>Personal</span>
+            <h2>Empleados</h2>
+            <p>Gestionar empleados</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/empleados')}>
-          <span>Empleados</span>
-          <h2>25</h2>
-        </div>
+          <div className="card clickable" onClick={() => navigate('/ventas')}>
+            <span>Operaciones</span>
+            <h2>Ventas</h2>
+            <p>Consultar ventas</p>
+          </div>
 
-        <div className="card clickable" onClick={() => navigate('/direcciones')}>
-          <span>Direcciones</span>
-          <h2>Clientes</h2>
+          <div className="card clickable" onClick={() => navigate('/reportes')}>
+            <span>Análisis</span>
+            <h2>Reportes</h2>
+            <p>Consultas SQL</p>
+          </div>
         </div>
 
 
