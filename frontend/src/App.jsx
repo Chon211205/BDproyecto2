@@ -6,6 +6,7 @@ import Clientes from './pages/Clientes'
 import Ventas from './pages/Ventas'
 import Categorias from './pages/Categorias'
 import Proveedores from './pages/Proveedores'
+import Empleados from './pages/Empleados'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Link to="/ventas">Ventas</Link>
           <Link to="/categorias">Categorías</Link>
           <Link to="/proveedores">Proveedores</Link>
+          <Link to="/empleados">Empleados</Link>
         </div>
       </div>
 
@@ -32,6 +34,8 @@ function App() {
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/categorias" element={<Categorias />} />
         <Route path="/proveedores" element={<Proveedores />} />
+        <Route path="/empleados" element={<Empleados />} />
+        
         
       </Routes>
     </BrowserRouter>

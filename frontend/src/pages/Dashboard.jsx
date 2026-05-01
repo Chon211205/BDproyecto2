@@ -43,6 +43,11 @@ function Dashboard() {
           <span>Proveedores</span>
           <h2>25</h2>
         </div>
+
+        <div className="card clickable" onClick={() => navigate('/empleados')}>
+          <span>Empleados</span>
+          <h2>25</h2>
+        </div>
         
       </div>
 
