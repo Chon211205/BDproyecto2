@@ -45,6 +45,7 @@ app.use('/api/reportes', reportesRoutes)
 app.use('/api/categorias', categoriasRoutes)
 app.use('/api/proveedores', proveedoresRoutes)
 app.use('/api/empleados', empleadosRoutes)
+app.use('/api/reportes', reportesRoutes)
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
