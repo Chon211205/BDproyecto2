@@ -7,6 +7,10 @@ function Productos() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [editandoId, setEditandoId] = useState(null)
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [categorias, setCategorias] = useState([])
+const [proveedores, setProveedores] = useState([])
+
 
   const [form, setForm] = useState({
     nombreProducto: '',
@@ -23,8 +27,33 @@ function Productos() {
       .catch(() => setError('No se pudieron cargar los productos'))
   }
 
+  function abrirFormularioNuevo() {
+    setEditandoId(null)
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreProducto: '',
+      precio: '',
+      stock: '',
+      idCategoria: '',
+      idProveedor: ''
+    })
+  }
+
   useEffect(() => {
     cargarProductos()
+
+    fetch('http://localhost:3000/api/categorias')
+      .then(res => res.json())
+      .then(data => setCategorias(Array.isArray(data) ? data : []))
+      .catch(() => setError('No se pudieron cargar las categorías'))
+
+    fetch('http://localhost:3000/api/proveedores')
+      .then(res => res.json())
+      .then(data => setProveedores(Array.isArray(data) ? data : []))
+      .catch(() => setError('No se pudieron cargar los proveedores'))
   }, [])
 
   function handleChange(e) {
@@ -65,6 +94,7 @@ function Productos() {
 
         setMensaje(editandoId ? 'Producto actualizado correctamente' : 'Producto creado correctamente')
         setEditandoId(null)
+        setMostrarFormulario(false)
         setForm({
           nombreProducto: '',
           precio: '',
@@ -79,6 +109,9 @@ function Productos() {
 
   function cargarEdicion(producto) {
     setEditandoId(producto.idproducto)
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
 
     setForm({
       nombreProducto: producto.nombreproducto,
@@ -86,6 +119,21 @@ function Productos() {
       stock: producto.stock,
       idCategoria: producto.idcategoria,
       idProveedor: producto.idproveedor
+    })
+  }
+
+  function cancelarFormulario() {
+    setEditandoId(null)
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreProducto: '',
+      precio: '',
+      stock: '',
+      idCategoria: '',
+      idProveedor: ''
     })
   }
 
@@ -121,65 +169,98 @@ function Productos() {
           <p>Consulta y administra el inventario de la tienda.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar producto
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>Agregar producto</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>{editandoId ? 'Editar producto' : 'Agregar producto'}</h3>
+                <p>
+                  {editandoId
+                    ? 'Modifica los datos del producto seleccionado.'
+                    : 'Registra un nuevo producto en el inventario.'}
+                </p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarProducto}>
-          <input
-            name="nombreProducto"
-            placeholder="Nombre del producto"
-            value={form.nombreProducto}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="precio"
-            type="number"
-            step="0.01"
-            placeholder="Precio"
-            value={form.precio}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarProducto}>
+              <input
+                name="nombreProducto"
+                placeholder="Nombre del producto"
+                value={form.nombreProducto}
+                onChange={handleChange}
+              />
 
-          <input
-            name="stock"
-            type="number"
-            placeholder="Stock"
-            value={form.stock}
-            onChange={handleChange}
-          />
+              <input
+                name="precio"
+                type="number"
+                step="0.01"
+                placeholder="Precio"
+                value={form.precio}
+                onChange={handleChange}
+              />
 
-          <input
-            name="idCategoria"
-            type="number"
-            placeholder="ID Categoría"
-            value={form.idCategoria}
-            onChange={handleChange}
-          />
+              <input
+                name="stock"
+                type="number"
+                placeholder="Stock"
+                value={form.stock}
+                onChange={handleChange}
+              />
 
-          <input
-            name="idProveedor"
-            type="number"
-            placeholder="ID Proveedor"
-            value={form.idProveedor}
-            onChange={handleChange}
-          />
+              <select
+                name="idCategoria"
+                value={form.idCategoria}
+                onChange={handleChange}
+              >
+                <option value="">Seleccionar categoría</option>
+                {categorias.map(categoria => (
+                  <option key={categoria.idcategoria} value={categoria.idcategoria}>
+                    {categoria.nombrecategoria}
+                  </option>
+                ))}
+              </select>
 
-        <button className="primaryButton" type="submit">
-          {editandoId ? 'Actualizar producto' : 'Guardar producto'}
-        </button>
-        </form>
-      </div>
+              <select
+                name="idProveedor"
+                value={form.idProveedor}
+                onChange={handleChange}
+              >
+                <option value="">Seleccionar proveedor</option>
+                {proveedores.map(proveedor => (
+                  <option key={proveedor.idproveedor} value={proveedor.idproveedor}>
+                    {proveedor.nombreproveedor}
+                  </option>
+                ))}
+              </select>
 
-      <br />
+              <button className="primaryButton" type="submit">
+                {editandoId ? 'Actualizar producto' : 'Guardar producto'}
+              </button>
+            </form>
+          </div>
+
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -197,15 +278,16 @@ function Productos() {
           </thead>
 
           <tbody>
-
             {productos.map(producto => (
               <tr key={producto.idproducto}>
                 <td>{producto.idproducto}</td>
-                <td><strong>{producto.nombreproducto}</strong></td>
+                <td>
+                  <strong>{producto.nombreproducto}</strong>
+                </td>
                 <td>Q{producto.precio}</td>
                 <td>{producto.stock}</td>
-                <td>{producto.idcategoria}</td>
-                <td>{producto.idproveedor}</td>
+                <td>{producto.nombrecategoria}</td>
+                <td>{producto.nombreproveedor}</td>
                 <td>
                   <span className={producto.stock < 20 ? 'badge danger' : 'badge success'}>
                     {producto.stock < 20 ? 'Bajo stock' : 'Disponible'}
@@ -213,21 +295,21 @@ function Productos() {
                 </td>
 
                 <td className="actions">
-                  <button 
-                    className="secondaryButton"
-                    onClick={() => cargarEdicion(producto)}
-                  >
-                    Editar
-                  </button>
+                  
+                <button
+                  className="secondaryButton"
+                  onClick={() => navigate(`/productos/${producto.idproducto}/editar`)}
+                >
+                  Editar
+                </button>
 
-                  <button 
+                  <button
                     className="dangerButton"
                     onClick={() => eliminarProducto(producto.idproducto)}
                   >
                     Eliminar
                   </button>
                 </td>
-
               </tr>
             ))}
           </tbody>

@@ -10,6 +10,7 @@ import Empleados from './pages/Empleados'
 import Direcciones from './pages/Direcciones'
 import Inventario from './pages/Inventario'
 import DetalleVenta from './pages/DetalleVenta'
+import EditarProducto from './pages/EditarProducto'
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         <Route path="/direcciones" element={<Direcciones />} />
         <Route path="/inventario" element={<Inventario />} />
         <Route path="/ventas/:id/detalle" element={<DetalleVenta />} />
+        <Route path="/productos/:id/editar" element={<EditarProducto />} />
         
         
       </Routes>

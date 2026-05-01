@@ -7,18 +7,23 @@ router.get('/', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
-        idProducto,
-        nombreProducto,
-        precio,
-        stock,
-        idCategoria,
-        idProveedor
-      FROM producto
-      ORDER BY idProducto;
+        p.idProducto,
+        p.nombreProducto,
+        p.precio,
+        p.stock,
+        p.idCategoria,
+        c.nombreCategoria,
+        p.idProveedor,
+        pr.nombreProveedor
+      FROM producto p
+      JOIN categoria c ON p.idCategoria = c.idCategoria
+      JOIN proveedor pr ON p.idProveedor = pr.idProveedor
+      ORDER BY p.idProducto;
     `)
 
     res.json(result.rows)
   } catch (error) {
+    console.error(error)
     res.status(500).json({ error: 'Error al obtener productos' })
   }
 })
@@ -99,6 +104,36 @@ router.delete('/:id', async (req, res) => {
     res.json({ mensaje: 'Producto eliminado correctamente' })
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar producto' })
+  }
+})
+
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await db.query(
+      `
+      SELECT 
+        idProducto,
+        nombreProducto,
+        precio,
+        stock,
+        idCategoria,
+        idProveedor
+      FROM producto
+      WHERE idProducto = $1;
+      `,
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' })
+    }
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener producto' })
   }
 })
 
