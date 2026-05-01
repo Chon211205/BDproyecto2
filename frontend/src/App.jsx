@@ -5,6 +5,7 @@ import Reportes from './pages/Reportes'
 import Clientes from './pages/Clientes'
 import Ventas from './pages/Ventas'
 import Categorias from './pages/Categorias'
+import Proveedores from './pages/Proveedores'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Link to="/clientes">Clientes</Link>
           <Link to="/ventas">Ventas</Link>
           <Link to="/categorias">Categorías</Link>
+          <Link to="/proveedores">Proveedores</Link>
         </div>
       </div>
 
@@ -29,6 +31,7 @@ function App() {
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/categorias" element={<Categorias />} />
+        <Route path="/proveedores" element={<Proveedores />} />
         
       </Routes>
     </BrowserRouter>

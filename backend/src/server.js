@@ -9,6 +9,7 @@ const clientesRoutes = require('./routes/clientes.routes')
 const ventasRoutes = require('./routes/ventas.routes')
 const reportesRoutes = require('./routes/reportes.routes')
 const categoriasRoutes = require('./routes/categorias.routes')
+const proveedoresRoutes = require('./routes/proveedores.routes')
 
 const app = express()
 
@@ -41,6 +42,7 @@ app.use('/api/clientes', clientesRoutes)
 app.use('/api/ventas', ventasRoutes)
 app.use('/api/reportes', reportesRoutes)
 app.use('/api/categorias', categoriasRoutes)
+app.use('/api/proveedores', proveedoresRoutes)
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
