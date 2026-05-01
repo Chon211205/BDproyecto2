@@ -7,6 +7,7 @@ function Clientes() {
   const [editandoId, setEditandoId] = useState(null)
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   const [form, setForm] = useState({
     nombreCliente: '',
@@ -20,6 +21,32 @@ function Clientes() {
       .then(res => res.json())
       .then(data => setClientes(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar los clientes'))
+  }
+
+  function abrirFormularioNuevo() {
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreCliente: '',
+      apellidoCliente: '',
+      correoCliente: '',
+      telefonoCliente: ''
+    })
+  }
+
+  function cancelarFormulario() {
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreCliente: '',
+      apellidoCliente: '',
+      correoCliente: '',
+      telefonoCliente: ''
+    })
   }
 
   useEffect(() => {
@@ -68,6 +95,7 @@ function Clientes() {
         }
 
         setMensaje(editandoId ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente')
+        setMostrarFormulario(false)
         setEditandoId(null)
         setForm({
           nombreCliente: '',
@@ -112,54 +140,73 @@ function Clientes() {
           <p>Administra los clientes registrados en la tienda.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar cliente
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>{editandoId ? 'Editar cliente' : 'Agregar cliente'}</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>Agregar cliente</h3>
+                <p>Registra un nuevo cliente dentro del sistema.</p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarCliente}>
-          <input
-            name="nombreCliente"
-            placeholder="Nombre"
-            value={form.nombreCliente}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="apellidoCliente"
-            placeholder="Apellido"
-            value={form.apellidoCliente}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarCliente}>
+              <input
+                name="nombreCliente"
+                placeholder="Nombre"
+                value={form.nombreCliente}
+                onChange={handleChange}
+              />
 
-          <input
-            name="correoCliente"
-            type="email"
-            placeholder="Correo"
-            value={form.correoCliente}
-            onChange={handleChange}
-          />
+              <input
+                name="apellidoCliente"
+                placeholder="Apellido"
+                value={form.apellidoCliente}
+                onChange={handleChange}
+              />
 
-          <input
-            name="telefonoCliente"
-            placeholder="Teléfono"
-            value={form.telefonoCliente}
-            onChange={handleChange}
-          />
+              <input
+                name="correoCliente"
+                type="email"
+                placeholder="Correo"
+                value={form.correoCliente}
+                onChange={handleChange}
+              />
 
-          <button className="primaryButton" type="submit">
-            {editandoId ? 'Actualizar cliente' : 'Guardar cliente'}
-          </button>
-        </form>
-      </div>
+              <input
+                name="telefonoCliente"
+                placeholder="Teléfono"
+                value={form.telefonoCliente}
+                onChange={handleChange}
+              />
 
-      <br />
+              <button className="primaryButton" type="submit">
+                Guardar cliente
+              </button>
+            </form>
+          </div>
+
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -199,7 +246,7 @@ function Clientes() {
                 <td className="actions">
                   <button
                     className="secondaryButton"
-                    onClick={() => cargarEdicion(cliente)}
+                    onClick={() => navigate(`/clientes/${cliente.idcliente}/editar`)}
                   >
                     Editar
                   </button>
