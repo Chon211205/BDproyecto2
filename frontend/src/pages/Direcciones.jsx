@@ -9,6 +9,7 @@ function Direcciones() {
   const [editandoId, setEditandoId] = useState(null)
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   const [form, setForm] = useState({
     direccionCliente: '',
@@ -21,6 +22,30 @@ function Direcciones() {
       .then(res => res.json())
       .then(data => setDirecciones(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar las direcciones'))
+  }
+
+  function abrirFormularioNuevo() {
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      direccionCliente: '',
+      ciudad: '',
+      idCliente: ''
+    })
+  }
+
+  function cancelarFormulario() {
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      direccionCliente: '',
+      ciudad: '',
+      idCliente: ''
+    })
   }
 
   function cargarClientes() {
@@ -80,6 +105,7 @@ function Direcciones() {
         }
 
         setMensaje(editandoId ? 'Dirección actualizada correctamente' : 'Dirección creada correctamente')
+        setMostrarFormulario(false)
         setEditandoId(null)
         setForm({
           direccionCliente: '',
@@ -134,63 +160,72 @@ function Direcciones() {
           <p>Administra las direcciones registradas para los clientes.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar dirección
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>{editandoId ? 'Editar dirección' : 'Agregar dirección'}</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>Agregar dirección</h3>
+                <p>Registra una nueva dirección asociada a un cliente.</p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarDireccion}>
-          <input
-            name="direccionCliente"
-            placeholder="Dirección"
-            value={form.direccionCliente}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="ciudad"
-            placeholder="Ciudad"
-            value={form.ciudad}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarDireccion}>
+              <input
+                name="direccionCliente"
+                placeholder="Dirección"
+                value={form.direccionCliente}
+                onChange={handleChange}
+              />
 
-          <select
-            name="idCliente"
-            value={form.idCliente}
-            onChange={handleChange}
-          >
-            <option value="">Seleccionar cliente</option>
+              <input
+                name="ciudad"
+                placeholder="Ciudad"
+                value={form.ciudad}
+                onChange={handleChange}
+              />
 
-            {clientes.map(cliente => (
-              <option key={cliente.idcliente} value={cliente.idcliente}>
-                {cliente.nombrecliente} {cliente.apellidocliente}
-              </option>
-            ))}
-          </select>
+              <select
+                name="idCliente"
+                value={form.idCliente}
+                onChange={handleChange}
+              >
+                <option value="">Seleccionar cliente</option>
 
-          <button className="primaryButton" type="submit">
-            {editandoId ? 'Actualizar dirección' : 'Guardar dirección'}
-          </button>
+                {clientes.map(cliente => (
+                  <option key={cliente.idcliente} value={cliente.idcliente}>
+                    {cliente.nombrecliente} {cliente.apellidocliente}
+                  </option>
+                ))}
+              </select>
 
-          {editandoId && (
-            <button
-              className="secondaryButton"
-              type="button"
-              onClick={cancelarEdicion}
-            >
-              Cancelar
-            </button>
-          )}
-        </form>
-      </div>
+              <button className="primaryButton" type="submit">
+                Guardar dirección
+              </button>
+            </form>
+          </div>
 
-      <br />
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -215,7 +250,7 @@ function Direcciones() {
                 <td className="actions">
                   <button
                     className="secondaryButton"
-                    onClick={() => cargarEdicion(direccion)}
+                    onClick={() => navigate(`/direcciones/${direccion.iddireccion}/editar`)}
                   >
                     Editar
                   </button>
