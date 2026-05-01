@@ -9,6 +9,7 @@ function Reportes() {
   const [ventasPorCliente, setVentasPorCliente] = useState([])
   const [productosPromedio, setProductosPromedio] = useState([])
   const [error, setError] = useState('')
+  const [clientesDirecciones, setClientesDirecciones] = useState([])
 
   useEffect(() => {
     async function cargarReportes() {
@@ -25,10 +26,14 @@ function Reportes() {
         const resPromedio = await fetch('http://localhost:3000/api/reportes/productos-precio-promedio')
         const dataPromedio = await resPromedio.json()
 
+        const resDirecciones = await fetch('http://localhost:3000/api/reportes/clientes-direcciones')
+        const dataDirecciones = await resDirecciones.json()
+
         setVentasClientes(Array.isArray(dataVentas) ? dataVentas : [])
         setProductosVendidos(Array.isArray(dataVendidos) ? dataVendidos : [])
         setVentasPorCliente(Array.isArray(dataCliente) ? dataCliente : [])
         setProductosPromedio(Array.isArray(dataPromedio) ? dataPromedio : [])
+        setClientesDirecciones(Array.isArray(dataDirecciones) ? dataDirecciones : [])
       } catch (err) {
         console.error(err)
         setError('No se pudieron cargar los reportes')
@@ -76,6 +81,12 @@ function Reportes() {
           <span>SUBQUERY</span>
           <h2>{productosPromedio.length}</h2>
           <p>Precio sobre promedio</p>
+        </div>
+
+        <div className="card">
+          <span>JOIN</span>
+          <h2>{clientesDirecciones.length}</h2>
+          <p>Clientes con dirección</p>
         </div>
       </div>
 
@@ -185,6 +196,42 @@ function Reportes() {
                 <td>{producto.idproducto}</td>
                 <td>{producto.nombreproducto}</td>
                 <td>Q{producto.precio}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <br />
+
+      <div className="panel">
+        <h3>Reporte 5: Clientes con dirección registrada (JOIN)</h3>
+        <p>
+          Este reporte combina las tablas cliente y direccion_cliente para mostrar
+          la ubicación registrada de cada cliente.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Cliente</th>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>Ciudad</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {clientesDirecciones.map(cliente => (
+              <tr key={cliente.idcliente}>
+                <td>{cliente.idcliente}</td>
+                <td>{cliente.cliente}</td>
+                <td>{cliente.correocliente}</td>
+                <td>{cliente.telefonocliente}</td>
+                <td>{cliente.direccioncliente}</td>
+                <td>{cliente.ciudad}</td>
               </tr>
             ))}
           </tbody>

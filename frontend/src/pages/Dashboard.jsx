@@ -48,7 +48,8 @@ function Dashboard() {
           <span>Empleados</span>
           <h2>25</h2>
         </div>
-        
+
+
       </div>
 
       <div className="grid">

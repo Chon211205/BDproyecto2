@@ -77,6 +77,28 @@ router.get('/ventas-por-cliente', async (req, res) => {
   }
 })
 
+router.get('/clientes-direcciones', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        c.idCliente,
+        c.nombreCliente || ' ' || c.apellidoCliente AS cliente,
+        c.correoCliente,
+        c.telefonoCliente,
+        d.direccionCliente,
+        d.ciudad
+      FROM cliente c
+      JOIN direccion_cliente d ON c.idCliente = d.idCliente
+      ORDER BY c.idCliente;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener clientes con dirección' })
+  }
+})
+
 // SUBQUERY: productos con precio mayor al promedio
 router.get('/productos-precio-promedio', async (req, res) => {
   try {

@@ -7,17 +7,21 @@ router.get('/', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
-        idCliente,
-        nombreCliente,
-        apellidoCliente,
-        correoCliente,
-        telefonoCliente
-      FROM cliente
-      ORDER BY idCliente;
+        c.idCliente,
+        c.nombreCliente,
+        c.apellidoCliente,
+        c.correoCliente,
+        c.telefonoCliente,
+        d.direccionCliente,
+        d.ciudad
+      FROM cliente c
+      LEFT JOIN direccion_cliente d ON c.idCliente = d.idCliente
+      ORDER BY c.idCliente;
     `)
 
     res.json(result.rows)
   } catch (error) {
+    console.error(error)
     res.status(500).json({ error: 'Error al obtener clientes' })
   }
 })

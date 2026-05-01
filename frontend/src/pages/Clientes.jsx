@@ -169,6 +169,8 @@ function Clientes() {
               <th>Nombre completo</th>
               <th>Correo</th>
               <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>Ciudad</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -178,16 +180,22 @@ function Clientes() {
             {clientes.map(cliente => (
               <tr key={cliente.idcliente}>
                 <td>{cliente.idcliente}</td>
+
                 <td>
                   <strong>
                     {cliente.nombrecliente} {cliente.apellidocliente}
                   </strong>
                 </td>
+
                 <td>{cliente.correocliente}</td>
                 <td>{cliente.telefonocliente}</td>
+                <td>{cliente.direccioncliente || 'Sin dirección'}</td>
+                <td>{cliente.ciudad || 'No registrada'}</td>
+
                 <td>
                   <span className="badge success">Activo</span>
                 </td>
+
                 <td className="actions">
                   <button
                     className="secondaryButton"
