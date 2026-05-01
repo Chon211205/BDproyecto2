@@ -33,7 +33,8 @@ function Ventas() {
               <th>Fecha</th>
               <th>Cliente</th>
               <th>Empleado</th>
-              <th>Total</th>
+              <th>Método de pago</th>
+              <th>Monto pagado</th>
             </tr>
           </thead>
 
@@ -44,7 +45,8 @@ function Ventas() {
                 <td>{new Date(venta.fecha).toLocaleDateString()}</td>
                 <td>{venta.cliente}</td>
                 <td>{venta.empleado}</td>
-                <td>Q{venta.total}</td>
+                <td>{venta.metodopago || 'Sin pago'}</td>
+                <td>{venta.montopagado ? `Q${venta.montopagado}` : 'Pendiente'}</td>             
               </tr>
             ))}
           </tbody>

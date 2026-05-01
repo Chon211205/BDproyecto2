@@ -11,10 +11,13 @@ router.get('/', async (req, res) => {
         v.fecha,
         c.nombreCliente || ' ' || c.apellidoCliente AS cliente,
         e.nombreEmpleado || ' ' || e.apellidoEmpleado AS empleado,
-        v.total
+        p.monto AS montoPagado,
+        mp.tipoMetodoPago AS metodoPago
       FROM venta v
       JOIN cliente c ON v.idCliente = c.idCliente
       JOIN empleado e ON v.idEmpleado = e.idEmpleado
+      LEFT JOIN pago p ON v.idVenta = p.idVenta
+      LEFT JOIN metodo_pago mp ON p.idMetodoPago = mp.idMetodoPago
       ORDER BY v.idVenta;
     `)
 
