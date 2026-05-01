@@ -57,6 +57,12 @@ function Dashboard() {
           <p>Productos registrados</p>
         </div>
 
+        <div className="card clickable" onClick={() => navigate('/inventario')}>
+          <span>Inventario</span>
+          <h2>Movimientos</h2>
+          <p>Entradas y salidas</p>
+        </div>
+
         <div className="card clickable" onClick={() => navigate('/categorias')}>
           <span>Clasificación</span>
           <h2>Categorías</h2>

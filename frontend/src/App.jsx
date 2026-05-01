@@ -8,6 +8,7 @@ import Categorias from './pages/Categorias'
 import Proveedores from './pages/Proveedores'
 import Empleados from './pages/Empleados'
 import Direcciones from './pages/Direcciones'
+import Inventario from './pages/Inventario'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Link to="/proveedores">Proveedores</Link>
           <Link to="/empleados">Empleados</Link>
           <Link to="/direcciones">Direcciones</Link>
+          <Link to="/inventario">Inventario</Link>
         </div>
       </div>
 
@@ -38,6 +40,7 @@ function App() {
         <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/empleados" element={<Empleados />} />
         <Route path="/direcciones" element={<Direcciones />} />
+        <Route path="/inventario" element={<Inventario />} />
         
         
       </Routes>

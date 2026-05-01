@@ -10,6 +10,7 @@ function Reportes() {
   const [productosPromedio, setProductosPromedio] = useState([])
   const [error, setError] = useState('')
   const [clientesDirecciones, setClientesDirecciones] = useState([])
+  const [movimientosProducto, setMovimientosProducto] = useState([])
 
   useEffect(() => {
     async function cargarReportes() {
@@ -29,11 +30,15 @@ function Reportes() {
         const resDirecciones = await fetch('http://localhost:3000/api/reportes/clientes-direcciones')
         const dataDirecciones = await resDirecciones.json()
 
+        const resMovimientos = await fetch('http://localhost:3000/api/reportes/movimientos-producto')
+        const dataMovimientos = await resMovimientos.json()
+
         setVentasClientes(Array.isArray(dataVentas) ? dataVentas : [])
         setProductosVendidos(Array.isArray(dataVendidos) ? dataVendidos : [])
         setVentasPorCliente(Array.isArray(dataCliente) ? dataCliente : [])
         setProductosPromedio(Array.isArray(dataPromedio) ? dataPromedio : [])
         setClientesDirecciones(Array.isArray(dataDirecciones) ? dataDirecciones : [])
+        setMovimientosProducto(Array.isArray(dataMovimientos) ? dataMovimientos : [])
       } catch (err) {
         console.error(err)
         setError('No se pudieron cargar los reportes')
@@ -88,6 +93,12 @@ function Reportes() {
           <h2>{clientesDirecciones.length}</h2>
           <p>Clientes con dirección</p>
         </div>
+      </div>
+
+      <div className="card">
+        <span>AGREGACIÓN</span>
+        <h2>{movimientosProducto.length}</h2>
+        <p>Movimientos por producto</p>
       </div>
 
       <div className="panel">
@@ -237,6 +248,44 @@ function Reportes() {
           </tbody>
         </table>
       </div>
+
+      <br/>
+
+      <div className="panel">
+        <h3>Reporte 6: Movimientos de inventario por producto</h3>
+        <p>
+          Este reporte calcula las entradas, salidas y balance de inventario por cada producto.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Producto</th>
+              <th>Producto</th>
+              <th>Total entradas</th>
+              <th>Total salidas</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {movimientosProducto.map(producto => (
+              <tr key={producto.idproducto}>
+                <td>{producto.idproducto}</td>
+                <td>{producto.nombreproducto}</td>
+                <td>{producto.totalentradas}</td>
+                <td>{producto.totalsalidas}</td>
+                <td>
+                  <span className={Number(producto.balance) >= 0 ? 'badge success' : 'badge danger'}>
+                    {producto.balance}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>     
+
     </div>
   )
 }
