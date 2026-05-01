@@ -1,0 +1,263 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #F9FAFB;
+  color: #1F2937;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  opacity: 0.8;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-links a {
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  opacity: 0.8;
+}
+
+.container {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  background: #DCFCE7;
+}
+
+.hero {
+  background: linear-gradient(135deg, #16A34A, #166534);
+  color: white;
+  padding: 40px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.hero h1 {
+  font-size: 34px;
+  margin: 10px 0;
+}
+
+.hero p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.primaryButton {
+  background: white;
+  color: #166534;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  background: #DCFCE7;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.card span {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.card h2 {
+  margin: 10px 0;
+  font-size: 30px;
+  color: #16A34A;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.panel {
+  background: white;
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.panel h3 {
+  margin-bottom: 16px;
+  color: #166534;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.item p {
+  margin: 4px 0 0;
+  color: #6B7280;
+}
+
+.item span {
+  color: #16A34A;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+th {
+  color: #6B7280;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  color: #166534;
+}
+
+.pageHeader p {
+  margin: 6px 0 0;
+  color: #6B7280;
+}
+
+.toolbar {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.toolbar input,
+.toolbar select {
+  padding: 12px 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 12px;
+  background: white;
+  font-size: 14px;
+}
+
+.toolbar input {
+  flex: 1;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.badge.success {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.badge.danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.secondaryButton {
+  background: #E5E7EB;
+  color: #1F2937;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  background: #D1D5DB;
+}
+
+.reportGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
+
+.panelTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.panelTitle h3 {
+  margin: 0;
+  color: #166534;
+}
+
+.card p {
+  margin: 0;
+  color: #6B7280;
+  font-size: 14px;
+}
