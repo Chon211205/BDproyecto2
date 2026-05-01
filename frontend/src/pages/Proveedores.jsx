@@ -7,6 +7,7 @@ function Proveedores() {
   const [editandoId, setEditandoId] = useState(null)
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
 
   const [form, setForm] = useState({
     nombreProveedor: '',
@@ -19,6 +20,30 @@ function Proveedores() {
       .then(res => res.json())
       .then(data => setProveedores(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar los proveedores'))
+  }
+
+  function abrirFormularioNuevo() {
+    setMostrarFormulario(true)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreProveedor: '',
+      telefonoProveedor: '',
+      correoProveedor: ''
+    })
+  }
+
+  function cancelarFormulario() {
+    setMostrarFormulario(false)
+    setMensaje('')
+    setError('')
+
+    setForm({
+      nombreProveedor: '',
+      telefonoProveedor: '',
+      correoProveedor: ''
+    })
   }
 
   useEffect(() => {
@@ -66,6 +91,7 @@ function Proveedores() {
         }
 
         setMensaje(editandoId ? 'Proveedor actualizado correctamente' : 'Proveedor creado correctamente')
+        setMostrarFormulario(false)
         setEditandoId(null)
         setForm({
           nombreProveedor: '',
@@ -120,57 +146,66 @@ function Proveedores() {
           <p>Administra los proveedores asociados a los productos.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button className="primaryButton" onClick={abrirFormularioNuevo}>
+            + Agregar proveedor
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="successMessage">{mensaje}</p>}
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="panel">
-        <h3>{editandoId ? 'Editar proveedor' : 'Agregar proveedor'}</h3>
+      {mostrarFormulario && (
+        <>
+          <div className="panel">
+            <div className="pageHeader">
+              <div>
+                <h3>Agregar proveedor</h3>
+                <p>Registra un nuevo proveedor para los productos de la tienda.</p>
+              </div>
 
-        <form className="formGrid" onSubmit={guardarProveedor}>
-          <input
-            name="nombreProveedor"
-            placeholder="Nombre del proveedor"
-            value={form.nombreProveedor}
-            onChange={handleChange}
-          />
+              <button className="secondaryButton" onClick={cancelarFormulario}>
+                Cancelar
+              </button>
+            </div>
 
-          <input
-            name="telefonoProveedor"
-            placeholder="Teléfono"
-            value={form.telefonoProveedor}
-            onChange={handleChange}
-          />
+            <form className="formGrid" onSubmit={guardarProveedor}>
+              <input
+                name="nombreProveedor"
+                placeholder="Nombre del proveedor"
+                value={form.nombreProveedor}
+                onChange={handleChange}
+              />
 
-          <input
-            name="correoProveedor"
-            type="email"
-            placeholder="Correo"
-            value={form.correoProveedor}
-            onChange={handleChange}
-          />
+              <input
+                name="telefonoProveedor"
+                placeholder="Teléfono"
+                value={form.telefonoProveedor}
+                onChange={handleChange}
+              />
 
-          <button className="primaryButton" type="submit">
-            {editandoId ? 'Actualizar proveedor' : 'Guardar proveedor'}
-          </button>
+              <input
+                name="correoProveedor"
+                type="email"
+                placeholder="Correo"
+                value={form.correoProveedor}
+                onChange={handleChange}
+              />
 
-          {editandoId && (
-            <button
-              className="secondaryButton"
-              type="button"
-              onClick={cancelarEdicion}
-            >
-              Cancelar
-            </button>
-          )}
-        </form>
-      </div>
+              <button className="primaryButton" type="submit">
+                Guardar proveedor
+              </button>
+            </form>
+          </div>
 
-      <br />
+          <br />
+        </>
+      )}
 
       <div className="panel">
         <table>
@@ -189,18 +224,22 @@ function Proveedores() {
             {proveedores.map(proveedor => (
               <tr key={proveedor.idproveedor}>
                 <td>{proveedor.idproveedor}</td>
+
                 <td>
                   <strong>{proveedor.nombreproveedor}</strong>
                 </td>
+
                 <td>{proveedor.telefonoproveedor}</td>
                 <td>{proveedor.correoproveedor}</td>
+
                 <td>
                   <span className="badge success">Activo</span>
                 </td>
+
                 <td className="actions">
                   <button
                     className="secondaryButton"
-                    onClick={() => cargarEdicion(proveedor)}
+                    onClick={() => navigate(`/proveedores/${proveedor.idproveedor}/editar`)}
                   >
                     Editar
                   </button>

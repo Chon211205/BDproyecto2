@@ -23,6 +23,34 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await db.query(
+      `
+      SELECT 
+        idProveedor,
+        nombreProveedor,
+        telefonoProveedor,
+        correoProveedor
+      FROM proveedor
+      WHERE idProveedor = $1;
+      `,
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Proveedor no encontrado' })
+    }
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener proveedor' })
+  }
+})
+
 // CREATE
 router.post('/', async (req, res) => {
   try {

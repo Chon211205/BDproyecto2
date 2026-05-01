@@ -12,6 +12,7 @@ import Inventario from './pages/Inventario'
 import DetalleVenta from './pages/DetalleVenta'
 import EditarProducto from './pages/EditarProducto'
 import EditarCategoria from './pages/EditarCategoria'
+import EditarProveedor from './pages/EditarProveedor'
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
         <Route path="/ventas/:id/detalle" element={<DetalleVenta />} />
         <Route path="/productos/:id/editar" element={<EditarProducto />} />
         <Route path="/categorias/:id/editar" element={<EditarCategoria />} />
+        <Route path="/proveedores/:id/editar" element={<EditarProveedor />} />
         
         
       </Routes>
