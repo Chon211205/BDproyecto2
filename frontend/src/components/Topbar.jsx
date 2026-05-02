@@ -1,7 +1,14 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 function Topbar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const usuarioActivo = localStorage.getItem('usuarioActivo')
+
+  function cerrarSesion() {
+    localStorage.removeItem('usuarioActivo')
+    navigate('/login')
+  }
 
   function isActive(path) {
     return location.pathname === path
@@ -38,6 +45,14 @@ function Topbar() {
           Reportes
         </Link>
       </nav>
+
+      <div className="topbarSession">
+        <span>{usuarioActivo}</span>
+
+        <button className="logoutButton" onClick={cerrarSesion}>
+          Cerrar sesión
+        </button>
+      </div>
     </header>
   )
 }

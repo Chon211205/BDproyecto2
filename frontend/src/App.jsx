@@ -1,7 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 
 import Topbar from './components/Topbar'
+import ProtectedRoute from './components/ProtectedRoute'
 
+import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Productos from './pages/Productos'
 import EditarProducto from './pages/EditarProducto'
@@ -21,39 +23,187 @@ import RegistrarVenta from './pages/RegistrarVenta'
 import Reportes from './pages/Reportes'
 import Inventario from './pages/Inventario'
 
+function AppContent() {
+  const location = useLocation()
+  const mostrarTopbar = location.pathname !== '/login'
+
+  return (
+    <>
+      {mostrarTopbar && <Topbar />}
+
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/productos"
+          element={
+            <ProtectedRoute>
+              <Productos />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/productos/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarProducto />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clientes"
+          element={
+            <ProtectedRoute>
+              <Clientes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/clientes/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarCliente />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/categorias"
+          element={
+            <ProtectedRoute>
+              <Categorias />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/categorias/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarCategoria />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/proveedores"
+          element={
+            <ProtectedRoute>
+              <Proveedores />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/proveedores/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarProveedor />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/direcciones"
+          element={
+            <ProtectedRoute>
+              <Direcciones />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/direcciones/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarDireccion />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/empleados"
+          element={
+            <ProtectedRoute>
+              <Empleados />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/empleados/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarEmpleado />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ventas"
+          element={
+            <ProtectedRoute>
+              <Ventas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ventas/:id/detalle"
+          element={
+            <ProtectedRoute>
+              <DetalleVenta />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ventas/registrar"
+          element={
+            <ProtectedRoute>
+              <RegistrarVenta />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reportes"
+          element={
+            <ProtectedRoute>
+              <Reportes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/inventario"
+          element={
+            <ProtectedRoute>
+              <Inventario />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Topbar />
-
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-
-        <Route path="/productos" element={<Productos />} />
-        <Route path="/productos/:id/editar" element={<EditarProducto />} />
-
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/clientes/:id/editar" element={<EditarCliente />} />
-
-        <Route path="/categorias" element={<Categorias />} />
-        <Route path="/categorias/:id/editar" element={<EditarCategoria />} />
-
-        <Route path="/proveedores" element={<Proveedores />} />
-        <Route path="/proveedores/:id/editar" element={<EditarProveedor />} />
-
-        <Route path="/direcciones" element={<Direcciones />} />
-        <Route path="/direcciones/:id/editar" element={<EditarDireccion />} />
-
-        <Route path="/empleados" element={<Empleados />} />
-        <Route path="/empleados/:id/editar" element={<EditarEmpleado />} />
-
-        <Route path="/ventas" element={<Ventas />} />
-        <Route path="/ventas/:id/detalle" element={<DetalleVenta />} />
-        <Route path="/ventas/registrar" element={<RegistrarVenta />} />
-
-        <Route path="/reportes" element={<Reportes />} />
-        <Route path="/inventario" element={<Inventario />} />
-      </Routes>
+      <AppContent />
     </BrowserRouter>
   )
 }
