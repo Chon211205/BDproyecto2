@@ -25,7 +25,8 @@ import Inventario from './pages/Inventario'
 
 function AppContent() {
   const location = useLocation()
-  const mostrarTopbar = location.pathname !== '/login'
+  const usuarioActivo = localStorage.getItem('usuarioActivo')
+  const mostrarTopbar = location.pathname !== '/login' && usuarioActivo
 
   return (
     <>

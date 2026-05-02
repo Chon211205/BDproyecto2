@@ -14,6 +14,7 @@ const empleadosRoutes = require('./routes/empleados.routes')
 const direccionesRoutes = require('./routes/direcciones.routes')
 const inventarioRoutes = require('./routes/inventario.routes')
 const metodosPagoRoutes = require('./routes/metodosPago.routes')
+const authRoutes = require('./routes/auth.routes')
 
 const app = express()
 
@@ -52,6 +53,7 @@ app.use('/api/reportes', reportesRoutes)
 app.use('/api/direcciones', direccionesRoutes)
 app.use('/api/inventario', inventarioRoutes)
 app.use('/api/metodos-pago', metodosPagoRoutes)
+app.use('/api/auth', authRoutes)
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

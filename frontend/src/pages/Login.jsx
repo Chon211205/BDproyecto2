@@ -5,8 +5,8 @@ function Login() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
-    usuario: '',
-    password: ''
+    correoUsuario: '',
+    passwordUsuario: ''
   })
 
   const [error, setError] = useState('')
@@ -22,18 +22,29 @@ function Login() {
     e.preventDefault()
     setError('')
 
-    if (!form.usuario || !form.password) {
-      setError('Debes ingresar usuario y contraseña')
+    if (!form.correoUsuario || !form.passwordUsuario) {
+      setError('Debes ingresar correo y contraseña')
       return
     }
 
-    if (form.usuario === 'admin' && form.password === 'admin123') {
-      localStorage.setItem('usuarioActivo', form.usuario)
-      navigate('/')
-      return
-    }
+    fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+          return
+        }
 
-    setError('Usuario o contraseña incorrectos')
+        localStorage.setItem('usuarioActivo', JSON.stringify(data.usuario))
+        navigate('/')
+      })
+      .catch(() => {
+        setError('No se pudo conectar con el servidor')
+      })
   }
 
   return (
@@ -42,24 +53,25 @@ function Login() {
         <div className="loginHeader">
           <div className="loginLogo">UVG</div>
           <h1>UVGStore</h1>
-          <p>Inicia sesión para acceder al sistema</p>
+          <p>Inicia sesión con un usuario registrado en la base de datos</p>
         </div>
 
         {error && <p className="errorMessage">{error}</p>}
 
         <form className="loginForm" onSubmit={iniciarSesion}>
           <input
-            name="usuario"
-            placeholder="Usuario"
-            value={form.usuario}
+            name="correoUsuario"
+            type="email"
+            placeholder="Correo"
+            value={form.correoUsuario}
             onChange={handleChange}
           />
 
           <input
-            name="password"
+            name="passwordUsuario"
             type="password"
             placeholder="Contraseña"
-            value={form.password}
+            value={form.passwordUsuario}
             onChange={handleChange}
           />
 
@@ -69,7 +81,7 @@ function Login() {
         </form>
 
         <p className="loginHint">
-          Usuario: admin | Contraseña: admin123
+          Credenciales fijas | Correo: proy2@gmail.com | Contraseña: secret
         </p>
       </div>
     </div>

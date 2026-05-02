@@ -3,23 +3,25 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 function Topbar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const usuarioActivo = localStorage.getItem('usuarioActivo')
+
+  const usuarioGuardado = localStorage.getItem('usuarioActivo')
+  const usuarioActivo = usuarioGuardado ? JSON.parse(usuarioGuardado) : null
+
+  function isActive(path) {
+    return location.pathname === path
+  }
 
   function cerrarSesion() {
     localStorage.removeItem('usuarioActivo')
     navigate('/login')
   }
 
-  function isActive(path) {
-    return location.pathname === path
-  }
-
   return (
     <header className="topbar">
       <div className="topbarLogo">
-        <span className="logoIcon">🛒</span>
+        <span className="logoIcon">UVG</span>
         <div>
-          <h2>UVGestor</h2>
+          <h2>UVGStore</h2>
           <p>Sistema de gestión</p>
         </div>
       </div>
@@ -46,13 +48,15 @@ function Topbar() {
         </Link>
       </nav>
 
-      <div className="topbarSession">
-        <span>{usuarioActivo}</span>
+      {usuarioActivo && (
+        <div className="topbarSession">
+          <span>{usuarioActivo.nombreUsuario}</span>
 
-        <button className="logoutButton" onClick={cerrarSesion}>
-          Cerrar sesión
-        </button>
-      </div>
+          <button className="logoutButton" onClick={cerrarSesion}>
+            Cerrar sesión
+          </button>
+        </div>
+      )}
     </header>
   )
 }
