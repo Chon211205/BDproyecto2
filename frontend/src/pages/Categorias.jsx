@@ -9,6 +9,7 @@ function Categorias() {
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [filtroCiudad, setFiltroCiudad] = useState('')
 
   const [form, setForm] = useState({
     nombreCategoria: '',
@@ -196,6 +197,7 @@ function Categorias() {
           <br />
         </>
       )}
+      
 
       <div className="toolbar">
         <input
@@ -204,6 +206,13 @@ function Categorias() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <button
+          className="secondaryButton"
+          onClick={() => setBusqueda('')}
+        >
+          Limpiar
+        </button>
       </div>
 
       <div className="panel">

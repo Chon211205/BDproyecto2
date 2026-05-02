@@ -145,6 +145,7 @@ function Proveedores() {
     proveedor.correoproveedor?.toLowerCase().includes(busqueda.toLowerCase())
   )
 
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -221,6 +222,13 @@ function Proveedores() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <button
+          className="secondaryButton"
+          onClick={() => setBusqueda('')}
+        >
+          Limpiar
+        </button>
       </div>
 
       <div className="panel">

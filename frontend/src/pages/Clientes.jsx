@@ -9,6 +9,7 @@ function Clientes() {
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [filtroCiudad, setFiltroCiudad] = useState('')
 
   const [form, setForm] = useState({
     nombreCliente: '',
@@ -133,14 +134,26 @@ function Clientes() {
       .catch(() => setError('Error al eliminar cliente'))
   }
 
-  const clientesFiltrados = clientes.filter(cliente =>
-    cliente.nombrecliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    cliente.apellidocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    cliente.correocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    cliente.telefonocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    cliente.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    cliente.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  const ciudadesClientes = [...new Set(
+    clientes
+      .map(cliente => cliente.ciudad)
+      .filter(Boolean)
+  )]
+
+  const clientesFiltrados = clientes.filter(cliente => {
+    const coincideBusqueda =
+      cliente.nombrecliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      cliente.apellidocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      cliente.correocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      cliente.telefonocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      cliente.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      cliente.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+
+    const coincideCiudad =
+      filtroCiudad === '' || cliente.ciudad === filtroCiudad
+
+    return coincideBusqueda && coincideCiudad
+  })
 
   return (
     <div className="container">
@@ -225,6 +238,18 @@ function Clientes() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <select
+          value={filtroCiudad}
+          onChange={(e) => setFiltroCiudad(e.target.value)}
+        >
+          <option value="">Todas las ciudades</option>
+          {ciudadesClientes.map(ciudad => (
+            <option key={ciudad} value={ciudad}>
+              {ciudad}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="panel">

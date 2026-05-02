@@ -11,6 +11,7 @@ function Direcciones() {
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [filtroCiudad, setFiltroCiudad] = useState('')
 
   const [form, setForm] = useState({
     direccionCliente: '',
@@ -153,11 +154,23 @@ function Direcciones() {
     setError('')
   }
 
-  const direccionesFiltradas = direcciones.filter(direccion =>
-    direccion.cliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    direccion.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    direccion.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  const ciudadesDirecciones = [...new Set(
+    direcciones
+      .map(direccion => direccion.ciudad)
+      .filter(Boolean)
+  )]
+
+  const direccionesFiltradas = direcciones.filter(direccion => {
+    const coincideBusqueda =
+      direccion.cliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      direccion.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      direccion.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+
+    const coincideCiudad =
+      filtroCiudad === '' || direccion.ciudad === filtroCiudad
+
+    return coincideBusqueda && coincideCiudad
+  })
 
   return (
     <div className="container">
@@ -241,6 +254,18 @@ function Direcciones() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <select
+          value={filtroCiudad}
+          onChange={(e) => setFiltroCiudad(e.target.value)}
+        >
+          <option value="">Todas las ciudades</option>
+          {ciudadesDirecciones.map(ciudad => (
+            <option key={ciudad} value={ciudad}>
+              {ciudad}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="panel">

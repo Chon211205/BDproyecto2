@@ -9,6 +9,7 @@ function Empleados() {
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [filtroPuesto, setFiltroPuesto] = useState('')
 
   const [form, setForm] = useState({
     nombreEmpleado: '',
@@ -138,11 +139,18 @@ function Empleados() {
     setMensaje('')
     setError('')
   }
-  const empleadosFiltrados = empleados.filter(empleado =>
-    empleado.nombreempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    empleado.apellidoempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    empleado.puesto?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+
+  const empleadosFiltrados = empleados.filter(empleado => {
+    const coincideBusqueda =
+      empleado.nombreempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      empleado.apellidoempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      empleado.puesto?.toLowerCase().includes(busqueda.toLowerCase())
+
+    const coincidePuesto =
+      filtroPuesto === '' || empleado.puesto === filtroPuesto
+
+    return coincideBusqueda && coincidePuesto
+  })
 
   return (
     <div className="container">
@@ -225,6 +233,18 @@ function Empleados() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <select
+          value={filtroPuesto}
+          onChange={(e) => setFiltroPuesto(e.target.value)}
+        >
+          <option value="">Todos los puestos</option>
+          <option value="Cajero">Cajero</option>
+          <option value="Vendedor">Vendedor</option>
+          <option value="Supervisor">Supervisor</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Bodeguero">Bodeguero</option>
+        </select>
       </div>
 
       <div className="panel">

@@ -11,6 +11,9 @@ function Productos() {
   const [categorias, setCategorias] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [busqueda, setBusqueda] = useState('')
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+  const [filtroProveedor, setFiltroProveedor] = useState('')
+  const [filtroStock, setFiltroStock] = useState('')
 
 
   const [form, setForm] = useState({
@@ -162,11 +165,25 @@ function Productos() {
       .catch(() => setError('Error al eliminar producto'))
   }
 
-  const productosFiltrados = productos.filter(producto =>
-    producto.nombreproducto?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    producto.nombrecategoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    producto.nombreproveedor?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  const productosFiltrados = productos.filter(producto => {
+    const coincideBusqueda =
+      producto.nombreproducto?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      producto.nombrecategoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      producto.nombreproveedor?.toLowerCase().includes(busqueda.toLowerCase())
+
+    const coincideCategoria =
+      filtroCategoria === '' || String(producto.idcategoria) === filtroCategoria
+
+    const coincideProveedor =
+      filtroProveedor === '' || String(producto.idproveedor) === filtroProveedor
+
+    const coincideStock =
+      filtroStock === '' ||
+      (filtroStock === 'disponible' && producto.stock >= 20) ||
+      (filtroStock === 'bajo' && producto.stock < 20)
+
+    return coincideBusqueda && coincideCategoria && coincideProveedor && coincideStock
+  })
 
   return (
     <div className="container">
@@ -276,6 +293,39 @@ function Productos() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        <select
+          value={filtroCategoria}
+          onChange={(e) => setFiltroCategoria(e.target.value)}
+        >
+          <option value="">Todas las categorías</option>
+          {categorias.map(categoria => (
+            <option key={categoria.idcategoria} value={categoria.idcategoria}>
+              {categoria.nombrecategoria}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filtroProveedor}
+          onChange={(e) => setFiltroProveedor(e.target.value)}
+        >
+          <option value="">Todos los proveedores</option>
+          {proveedores.map(proveedor => (
+            <option key={proveedor.idproveedor} value={proveedor.idproveedor}>
+              {proveedor.nombreproveedor}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filtroStock}
+          onChange={(e) => setFiltroStock(e.target.value)}
+        >
+          <option value="">Todo el stock</option>
+          <option value="disponible">Disponible</option>
+          <option value="bajo">Bajo stock</option>
+        </select>
       </div>
 
       <div className="panel">
