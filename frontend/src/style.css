@@ -520,6 +520,19 @@ th {
   color: #166534;
 }
 
+.linkButton {
+  background: none;
+  border: none;
+  color: #166534;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   .topbar {
     height: auto;

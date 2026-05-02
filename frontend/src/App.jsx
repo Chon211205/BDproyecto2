@@ -22,6 +22,7 @@ import DetalleVenta from './pages/DetalleVenta'
 import RegistrarVenta from './pages/RegistrarVenta'
 import Reportes from './pages/Reportes'
 import Inventario from './pages/Inventario'
+import Register from './pages/Register'
 
 function AppContent() {
   const location = useLocation()
@@ -34,6 +35,7 @@ function AppContent() {
 
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route
           path="/"
@@ -196,6 +198,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        
       </Routes>
     </>
   )

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-function Login() {
+function Register() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
@@ -9,6 +9,7 @@ function Login() {
     passwordUsuario: ''
   })
 
+  const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
 
   function handleChange(e) {
@@ -18,8 +19,9 @@ function Login() {
     })
   }
 
-  function iniciarSesion(e) {
+  function registrarUsuario(e) {
     e.preventDefault()
+    setMensaje('')
     setError('')
 
     if (!form.correoUsuario || !form.passwordUsuario) {
@@ -27,7 +29,7 @@ function Login() {
       return
     }
 
-    fetch('http://localhost:3000/api/auth/login', {
+    fetch('http://localhost:3000/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
@@ -39,8 +41,16 @@ function Login() {
           return
         }
 
-        localStorage.setItem('usuarioActivo', JSON.stringify(data.usuario))
-        navigate('/')
+        setMensaje('Usuario registrado correctamente. Ahora puedes iniciar sesión.')
+
+        setForm({
+          correoUsuario: '',
+          passwordUsuario: ''
+        })
+
+        setTimeout(() => {
+          navigate('/login')
+        }, 1000)
       })
       .catch(() => {
         setError('No se pudo conectar con el servidor')
@@ -52,13 +62,14 @@ function Login() {
       <div className="loginCard">
         <div className="loginHeader">
           <div className="loginLogo">UVG</div>
-          <h1>UVGStore</h1>
-          <p>Inicia sesión con un usuario registrado en la base de datos</p>
+          <h1>Crear cuenta</h1>
+          <p>Registra un usuario nuevo para acceder al sistema</p>
         </div>
 
+        {mensaje && <p className="successMessage">{mensaje}</p>}
         {error && <p className="errorMessage">{error}</p>}
 
-        <form className="loginForm" onSubmit={iniciarSesion}>
+        <form className="loginForm" onSubmit={registrarUsuario}>
           <input
             name="correoUsuario"
             type="email"
@@ -76,27 +87,22 @@ function Login() {
           />
 
           <button className="primaryButton" type="submit">
-            Iniciar sesión
+            Registrarme
           </button>
         </form>
 
         <p className="loginHint">
-            ¿No tienes cuenta?{' '}
-            <button
-                className="linkButton"
-                onClick={() => navigate('/register')}
-            >
-                Crear cuenta
-            </button>
+          ¿Ya tienes cuenta?{' '}
+          <button
+            className="linkButton"
+            onClick={() => navigate('/login')}
+          >
+            Iniciar sesión
+          </button>
         </p>
-
-        <p className="loginHint">
-        Credenciales fijas de prueba guardadas en la base de datos | Correo: proy2@gmail.com | Contraseña: secret
-        </p>
-
       </div>
     </div>
   )
 }
 
-export default Login
+export default Register
