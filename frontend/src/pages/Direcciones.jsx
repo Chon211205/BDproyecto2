@@ -10,6 +10,7 @@ function Direcciones() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [form, setForm] = useState({
     direccionCliente: '',
@@ -152,6 +153,12 @@ function Direcciones() {
     setError('')
   }
 
+  const direccionesFiltradas = direcciones.filter(direccion =>
+    direccion.cliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    direccion.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    direccion.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -227,6 +234,15 @@ function Direcciones() {
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar cliente, dirección o ciudad..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -240,7 +256,7 @@ function Direcciones() {
           </thead>
 
           <tbody>
-            {direcciones.map(direccion => (
+            {direccionesFiltradas.map(direccion => (
               <tr key={direccion.iddireccion}>
                 <td>{direccion.iddireccion}</td>
                 <td>{direccion.cliente}</td>

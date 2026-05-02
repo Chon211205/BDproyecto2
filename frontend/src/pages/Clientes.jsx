@@ -8,6 +8,7 @@ function Clientes() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [form, setForm] = useState({
     nombreCliente: '',
@@ -132,6 +133,15 @@ function Clientes() {
       .catch(() => setError('Error al eliminar cliente'))
   }
 
+  const clientesFiltrados = clientes.filter(cliente =>
+    cliente.nombrecliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    cliente.apellidocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    cliente.correocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    cliente.telefonocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    cliente.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    cliente.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -208,6 +218,15 @@ function Clientes() {
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar cliente, correo, teléfono, dirección o ciudad..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -224,7 +243,7 @@ function Clientes() {
           </thead>
 
           <tbody>
-            {clientes.map(cliente => (
+            {clientesFiltrados.map(cliente => (
               <tr key={cliente.idcliente}>
                 <td>{cliente.idcliente}</td>
 

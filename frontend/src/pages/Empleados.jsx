@@ -8,6 +8,7 @@ function Empleados() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [form, setForm] = useState({
     nombreEmpleado: '',
@@ -137,6 +138,11 @@ function Empleados() {
     setMensaje('')
     setError('')
   }
+  const empleadosFiltrados = empleados.filter(empleado =>
+    empleado.nombreempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    empleado.apellidoempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    empleado.puesto?.toLowerCase().includes(busqueda.toLowerCase())
+  )
 
   return (
     <div className="container">
@@ -212,6 +218,15 @@ function Empleados() {
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar empleado o puesto..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -225,7 +240,7 @@ function Empleados() {
           </thead>
 
           <tbody>
-            {empleados.map(empleado => (
+            {empleadosFiltrados.map(empleado => (
               <tr key={empleado.idempleado}>
                 <td>{empleado.idempleado}</td>
 

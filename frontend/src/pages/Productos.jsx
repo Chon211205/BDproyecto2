@@ -9,7 +9,8 @@ function Productos() {
   const [editandoId, setEditandoId] = useState(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [categorias, setCategorias] = useState([])
-const [proveedores, setProveedores] = useState([])
+  const [proveedores, setProveedores] = useState([])
+  const [busqueda, setBusqueda] = useState('')
 
 
   const [form, setForm] = useState({
@@ -161,6 +162,12 @@ const [proveedores, setProveedores] = useState([])
       .catch(() => setError('Error al eliminar producto'))
   }
 
+  const productosFiltrados = productos.filter(producto =>
+    producto.nombreproducto?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    producto.nombrecategoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    producto.nombreproveedor?.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -262,6 +269,15 @@ const [proveedores, setProveedores] = useState([])
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar producto, categoría o proveedor..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -278,7 +294,7 @@ const [proveedores, setProveedores] = useState([])
           </thead>
 
           <tbody>
-            {productos.map(producto => (
+              {productosFiltrados.map(producto => (
               <tr key={producto.idproducto}>
                 <td>{producto.idproducto}</td>
                 <td>

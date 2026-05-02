@@ -8,6 +8,7 @@ function Categorias() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [form, setForm] = useState({
     nombreCategoria: '',
@@ -130,6 +131,11 @@ function Categorias() {
     setError('')
   }
 
+  const categoriasFiltradas = categorias.filter(categoria =>
+    categoria.nombrecategoria?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    categoria.descripcioncategoria?.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -191,6 +197,15 @@ function Categorias() {
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar categoría o descripción..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -204,7 +219,7 @@ function Categorias() {
           </thead>
 
           <tbody>
-            {categorias.map(categoria => (
+            {categoriasFiltradas.map(categoria => (
               <tr key={categoria.idcategoria}>
                 <td>{categoria.idcategoria}</td>
 

@@ -8,6 +8,7 @@ function Proveedores() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   const [form, setForm] = useState({
     nombreProveedor: '',
@@ -138,6 +139,12 @@ function Proveedores() {
     setError('')
   }
 
+  const proveedoresFiltrados = proveedores.filter(proveedor =>
+    proveedor.nombreproveedor?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    proveedor.telefonoproveedor?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    proveedor.correoproveedor?.toLowerCase().includes(busqueda.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -207,6 +214,15 @@ function Proveedores() {
         </>
       )}
 
+      <div className="toolbar">
+        <input
+          type="text"
+          placeholder="Buscar proveedor, teléfono o correo..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
       <div className="panel">
         <table>
           <thead>
@@ -221,7 +237,7 @@ function Proveedores() {
           </thead>
 
           <tbody>
-            {proveedores.map(proveedor => (
+            {proveedoresFiltrados.map(proveedor => (
               <tr key={proveedor.idproveedor}>
                 <td>{proveedor.idproveedor}</td>
 
