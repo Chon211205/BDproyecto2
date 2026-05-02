@@ -3,7 +3,6 @@ const db = require('../database/db')
 
 const router = express.Router()
 
-// READ
 router.get('/', async (req, res) => {
   try {
     const result = await db.query(`
@@ -51,7 +50,6 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// CREATE
 router.post('/', async (req, res) => {
   try {
     const { nombreProveedor, telefonoProveedor, correoProveedor } = req.body
@@ -76,7 +74,6 @@ router.post('/', async (req, res) => {
   }
 })
 
-// UPDATE
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -109,7 +106,6 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-// DELETE
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params

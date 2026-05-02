@@ -3,7 +3,6 @@ const db = require('../database/db')
 
 const router = express.Router()
 
-// READ
 router.get('/', async (req, res) => {
   try {
     const result = await db.query(`
@@ -22,7 +21,33 @@ router.get('/', async (req, res) => {
   }
 })
 
-// CREATE
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await db.query(
+      `
+      SELECT 
+        idCategoria,
+        nombreCategoria,
+        descripcionCategoria
+      FROM categoria
+      WHERE idCategoria = $1;
+      `,
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Categoría no encontrada' })
+    }
+
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener categoría' })
+  }
+})
+
 router.post('/', async (req, res) => {
   try {
     const { nombreCategoria, descripcionCategoria } = req.body
@@ -47,7 +72,6 @@ router.post('/', async (req, res) => {
   }
 })
 
-// UPDATE
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -79,34 +103,6 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const result = await db.query(
-      `
-      SELECT 
-        idCategoria,
-        nombreCategoria,
-        descripcionCategoria
-      FROM categoria
-      WHERE idCategoria = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
-    }
-
-    res.json(result.rows[0])
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: 'Error al obtener categoría' })
-  }
-})
-
-// DELETE
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params
