@@ -17,6 +17,7 @@ function RegistrarVenta() {
     cantidad: ''
   })
 
+  const [productosSeleccionados, setProductosSeleccionados] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
 
@@ -45,10 +46,76 @@ function RegistrarVenta() {
     })
   }
 
+  function agregarProducto() {
+    setMensaje('')
+    setError('')
+
+    if (!form.idProducto || !form.cantidad) {
+      setError('Selecciona un producto y escribe una cantidad')
+      return
+    }
+
+    const productoEncontrado = productos.find(
+      producto => producto.idproducto === Number(form.idProducto)
+    )
+
+    if (!productoEncontrado) {
+      setError('Producto no encontrado')
+      return
+    }
+
+    if (Number(form.cantidad) <= 0) {
+      setError('La cantidad debe ser mayor a 0')
+      return
+    }
+
+    const yaExiste = productosSeleccionados.find(
+      producto => producto.idProducto === Number(form.idProducto)
+    )
+
+    if (yaExiste) {
+      setError('Ese producto ya fue agregado. Elimínalo y vuelve a agregarlo si quieres cambiar la cantidad.')
+      return
+    }
+
+    setProductosSeleccionados([
+      ...productosSeleccionados,
+      {
+        idProducto: productoEncontrado.idproducto,
+        nombreProducto: productoEncontrado.nombreproducto,
+        stock: productoEncontrado.stock,
+        precio: productoEncontrado.precio,
+        cantidad: Number(form.cantidad)
+      }
+    ])
+
+    setForm({
+      ...form,
+      idProducto: '',
+      cantidad: ''
+    })
+  }
+
+  function quitarProducto(idProducto) {
+    setProductosSeleccionados(
+      productosSeleccionados.filter(producto => producto.idProducto !== idProducto)
+    )
+  }
+
   function registrarVenta(e) {
     e.preventDefault()
     setMensaje('')
     setError('')
+
+    if (!form.idCliente || !form.idEmpleado || !form.idMetodoPago) {
+      setError('Cliente, empleado y método de pago son obligatorios')
+      return
+    }
+
+    if (productosSeleccionados.length === 0) {
+      setError('Debes agregar al menos un producto a la venta')
+      return
+    }
 
     fetch('http://localhost:3000/api/ventas/registrar-transaccion', {
       method: 'POST',
@@ -57,12 +124,10 @@ function RegistrarVenta() {
         idCliente: Number(form.idCliente),
         idEmpleado: Number(form.idEmpleado),
         idMetodoPago: Number(form.idMetodoPago),
-        productos: [
-          {
-            idProducto: Number(form.idProducto),
-            cantidad: Number(form.cantidad)
-          }
-        ]
+        productos: productosSeleccionados.map(producto => ({
+          idProducto: producto.idProducto,
+          cantidad: producto.cantidad
+        }))
       })
     })
       .then(res => res.json())
@@ -72,7 +137,8 @@ function RegistrarVenta() {
           return
         }
 
-        setMensaje(`Venta registrada correctamente. ID Venta: ${data.idVenta}. Total: Q${data.total}`)
+        setMensaje(`Venta registrada correctamente. ID Venta: ${data.idVenta}. Total: Q${Number(data.total).toFixed(2)}`)
+
         setForm({
           idCliente: '',
           idEmpleado: '',
@@ -80,9 +146,15 @@ function RegistrarVenta() {
           idProducto: '',
           cantidad: ''
         })
+
+        setProductosSeleccionados([])
       })
       .catch(() => setError('No se pudo conectar con el backend'))
   }
+
+  const totalEstimado = productosSeleccionados.reduce((total, producto) => {
+    return total + Number(producto.precio) * Number(producto.cantidad)
+  }, 0)
 
   return (
     <div className="container">
@@ -101,7 +173,7 @@ function RegistrarVenta() {
       {error && <p className="errorMessage">{error}</p>}
 
       <div className="panel">
-        <h3>Nueva venta con transacción</h3>
+        <h3>Datos generales de la venta</h3>
 
         <form className="formGrid" onSubmit={registrarVenta}>
           <select name="idCliente" value={form.idCliente} onChange={handleChange}>
@@ -130,12 +202,20 @@ function RegistrarVenta() {
               </option>
             ))}
           </select>
+        </form>
+      </div>
 
+      <br />
+
+      <div className="panel">
+        <h3>Agregar productos a la venta</h3>
+
+        <div className="formGrid">
           <select name="idProducto" value={form.idProducto} onChange={handleChange}>
             <option value="">Seleccionar producto</option>
             {productos.map(producto => (
               <option key={producto.idproducto} value={producto.idproducto}>
-                {producto.nombreproducto} - Stock: {producto.stock}
+                {producto.nombreproducto} - Stock: {producto.stock} - Q{producto.precio}
               </option>
             ))}
           </select>
@@ -148,10 +228,76 @@ function RegistrarVenta() {
             onChange={handleChange}
           />
 
-          <button className="primaryButton" type="submit">
+          <button className="primaryButton" type="button" onClick={agregarProducto}>
+            Agregar producto
+          </button>
+        </div>
+      </div>
+
+      <br />
+
+      <div className="panel">
+        <h3>Productos seleccionados</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Cantidad</th>
+              <th>Subtotal</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {productosSeleccionados.map(producto => (
+              <tr key={producto.idProducto}>
+                <td>{producto.nombreProducto}</td>
+                <td>Q{producto.precio}</td>
+                <td>{producto.cantidad}</td>
+                <td>Q{(Number(producto.precio) * Number(producto.cantidad)).toFixed(2)}</td>
+                <td>
+                  <button
+                    className="dangerButton"
+                    onClick={() => quitarProducto(producto.idProducto)}
+                  >
+                    Quitar
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {productosSeleccionados.length === 0 && (
+          <p>No has agregado productos a la venta.</p>
+        )}
+
+        <br />
+
+        <div className="pageHeader">
+          <div>
+            <h3>Total estimado: Q{totalEstimado.toFixed(2)}</h3>
+            <p>El total final se calcula nuevamente en el backend dentro de la transacción.</p>
+          </div>
+
+          <button className="primaryButton" onClick={registrarVenta}>
             Registrar venta
           </button>
-        </form>
+        </div>
+      </div>
+
+      <br />
+
+      <div className="panel">
+        <h3>¿Qué demuestra esta pantalla?</h3>
+        <p>
+          Al registrar una venta, el backend ejecuta una transacción explícita:
+          crea la venta, agrega varios detalles de venta, descuenta stock,
+          registra movimientos de inventario y guarda el pago. Si ocurre un error,
+          se ejecuta ROLLBACK.
+        </p>
       </div>
     </div>
   )

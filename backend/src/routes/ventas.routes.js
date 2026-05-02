@@ -87,11 +87,18 @@ router.post('/registrar-transaccion', async (req, res) => {
         throw new Error(`Producto con ID ${idProducto} no existe`)
       }
 
+      const nombreProducto = productoResult.rows[0].nombreproducto
       const precio = Number(productoResult.rows[0].precio)
       const stock = Number(productoResult.rows[0].stock)
 
-      if (stock < cantidad) {
-        throw new Error(`Stock insuficiente para el producto ID ${idProducto}`)
+      if (cantidad <= 0) {
+        throw new Error(`La cantidad del producto ${nombreProducto} debe ser mayor a 0`)
+      }
+
+      if (cantidad > stock) {
+        throw new Error(
+          `Stock insuficiente para ${nombreProducto}. Stock disponible: ${stock}, cantidad solicitada: ${cantidad}`
+        )
       }
 
       totalVenta += precio * cantidad
@@ -113,7 +120,7 @@ router.post('/registrar-transaccion', async (req, res) => {
 
       const productoResult = await client.query(
         `
-        SELECT precio
+        SELECT nombreProducto, precio, stock
         FROM producto
         WHERE idProducto = $1;
         `,
