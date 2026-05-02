@@ -21,7 +21,7 @@ function Topbar() {
       <div className="topbarLogo">
         <span className="logoIcon">UVG</span>
         <div>
-          <h2>UVGStore</h2>
+          <h2>UVGestore</h2>
           <p>Sistema de gestión</p>
         </div>
       </div>

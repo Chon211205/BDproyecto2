@@ -87,6 +87,42 @@ function Reportes() {
     cargarReportes()
   }, [])
 
+  function exportarCSV(nombreArchivo, datos) {
+    if (!datos || datos.length === 0) {
+      setError('No hay datos para exportar')
+      return
+    }
+
+    const encabezados = Object.keys(datos[0])
+
+    const filas = datos.map(fila =>
+      encabezados.map(campo => {
+        const valor = fila[campo] ?? ''
+        return `"${String(valor).replace(/"/g, '""')}"`
+      }).join(',')
+    )
+
+    const contenidoCSV = [
+      encabezados.join(','),
+      ...filas
+    ].join('\n')
+
+    const blob = new Blob([contenidoCSV], {
+      type: 'text/csv;charset=utf-8;'
+    })
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = nombreArchivo
+    link.click()
+
+    URL.revokeObjectURL(url)
+
+    setError('')
+  }
+
   return (
     <div className="container">
       <div className="pageHeader">
@@ -466,12 +502,23 @@ function Reportes() {
         <div className="panelTitle">
           <div>
             <h3>Reporte 9: Vista de ventas completas (VIEW)</h3>
-            <p>Este reporte utiliza una VIEW de PostgreSQL para mostrar ventas completas.</p>
+            <p>
+              Este reporte utiliza una VIEW de PostgreSQL para mostrar ventas completas.
+            </p>
           </div>
 
-          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
-            ↑ Volver al índice
-          </button>
+          <div className="actions">
+            <button
+              className="primaryButton"
+              onClick={() => exportarCSV('ventas_completas.csv', vistaVentas)}
+            >
+              Exportar CSV
+            </button>
+
+            <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+              ↑ Volver al índice
+            </button>
+          </div>
         </div>
 
         <table>
@@ -502,6 +549,7 @@ function Reportes() {
           </tbody>
         </table>
       </div>
+      
     </div>
   )
 }

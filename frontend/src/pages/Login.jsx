@@ -52,7 +52,7 @@ function Login() {
       <div className="loginCard">
         <div className="loginHeader">
           <div className="loginLogo">UVG</div>
-          <h1>UVGStore</h1>
+          <h1>UVGestore</h1>
           <p>Inicia sesión con un usuario registrado en la base de datos</p>
         </div>
 
