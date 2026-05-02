@@ -253,4 +253,19 @@ router.get('/productos-sin-ventas', async (req, res) => {
   }
 })
 
+router.get('/vista-ventas-completas', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT *
+      FROM vista_ventas_completas
+      ORDER BY idVenta;
+    `)
+
+    res.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Error al obtener la vista de ventas completas' })
+  }
+})
+
 module.exports = router

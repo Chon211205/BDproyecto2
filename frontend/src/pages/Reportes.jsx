@@ -13,6 +13,7 @@ function Reportes() {
   const [movimientosProducto, setMovimientosProducto] = useState([])
   const [clientesCompras, setClientesCompras] = useState([])
   const [productosSinVentas, setProductosSinVentas] = useState([])
+  const [vistaVentas, setVistaVentas] = useState([])
 
   useEffect(() => {
     async function cargarReportes() {
@@ -40,6 +41,11 @@ function Reportes() {
 
         const resSinVentas = await fetch('http://localhost:3000/api/reportes/productos-sin-ventas')
         const dataSinVentas = await resSinVentas.json()
+
+        const resVistaVentas = await fetch('http://localhost:3000/api/reportes/vista-ventas-completas')
+        const dataVistaVentas = await resVistaVentas.json()
+
+setVistaVentas(Array.isArray(dataVistaVentas) ? dataVistaVentas : [])
 
 setProductosSinVentas(Array.isArray(dataSinVentas) ? dataSinVentas : [])
 
@@ -117,13 +123,23 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
           <h2>{clientesDirecciones.length}</h2>
           <p>Clientes con dirección</p>
         </div>
+    
+        <div className="card">
+          <span>AGREGACIÓN</span>
+          <h2>{movimientosProducto.length}</h2>
+          <p>Movimientos por producto</p>
+        </div>
+
+        <div className="card">
+          <span>VIEW</span>
+          <h2>{vistaVentas.length}</h2>
+          <p>Ventas completas</p>
+        </div>
+
+
       </div>
 
-      <div className="card">
-        <span>AGREGACIÓN</span>
-        <h2>{movimientosProducto.length}</h2>
-        <p>Movimientos por producto</p>
-      </div>
+
 
 
       <div className="panel">
@@ -369,6 +385,44 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
                 <td>{producto.nombreproducto}</td>
                 <td>Q{producto.precio}</td>
                 <td>{producto.stock}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <br />
+
+      <div className="panel">
+        <h3>Reporte: Vista de ventas completas (VIEW)</h3>
+        <p>
+          Este reporte utiliza una VIEW de PostgreSQL para mostrar ventas con cliente,
+          empleado, método de pago y monto pagado.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Venta</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Empleado</th>
+              <th>Total</th>
+              <th>Método de pago</th>
+              <th>Monto pagado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {vistaVentas.map(venta => (
+              <tr key={venta.idventa}>
+                <td>#{venta.idventa}</td>
+                <td>{venta.fecha ? new Date(venta.fecha).toLocaleDateString() : '-'}</td>
+                <td>{venta.cliente}</td>
+                <td>{venta.empleado}</td>
+                <td>Q{venta.total}</td>
+                <td>{venta.metodopago || 'Sin pago'}</td>
+                <td>{venta.montopagado ? `Q${venta.montopagado}` : 'Pendiente'}</td>
               </tr>
             ))}
           </tbody>
