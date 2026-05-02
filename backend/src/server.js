@@ -13,6 +13,7 @@ const proveedoresRoutes = require('./routes/proveedores.routes')
 const empleadosRoutes = require('./routes/empleados.routes')
 const direccionesRoutes = require('./routes/direcciones.routes')
 const inventarioRoutes = require('./routes/inventario.routes')
+const metodosPagoRoutes = require('./routes/metodosPago.routes')
 
 const app = express()
 
@@ -50,6 +51,7 @@ app.use('/api/empleados', empleadosRoutes)
 app.use('/api/reportes', reportesRoutes)
 app.use('/api/direcciones', direccionesRoutes)
 app.use('/api/inventario', inventarioRoutes)
+app.use('/api/metodos-pago', metodosPagoRoutes)
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

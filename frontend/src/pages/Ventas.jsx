@@ -18,12 +18,21 @@ function Ventas() {
       <div className="pageHeader">
         <div>
           <h1>Ventas</h1>
-          <p>Consulta las ventas registradas en la tienda.</p>
+          <p>Consulta las ventas registradas y revisa el detalle de cada venta.</p>
         </div>
 
-        <button className="secondaryButton" onClick={() => navigate('/')}>
-          ← Dashboard
-        </button>
+        <div className="actions">
+          <button className="secondaryButton" onClick={() => navigate('/')}>
+            ← Dashboard
+          </button>
+
+          <button
+            className="primaryButton"
+            onClick={() => navigate('/ventas/registrar')}
+          >
+            + Registrar venta
+          </button>
+        </div>
       </div>
 
       {error && <p className="errorMessage">{error}</p>}
@@ -49,12 +58,19 @@ function Ventas() {
             {ventas.map(venta => (
               <tr key={venta.idventa}>
                 <td>#{venta.idventa}</td>
-                <td>{venta.fecha ? new Date(venta.fecha).toLocaleDateString() : '-'}</td>
+
+                <td>
+                  {venta.fecha
+                    ? new Date(venta.fecha).toLocaleDateString()
+                    : '-'}
+                </td>
+
                 <td>{venta.cliente}</td>
                 <td>{venta.empleado}</td>
                 <td>Q{venta.total}</td>
                 <td>{venta.metodopago || 'Sin pago'}</td>
                 <td>{venta.montopagado ? `Q${venta.montopagado}` : 'Pendiente'}</td>
+
                 <td>
                   <button
                     className="secondaryButton"
@@ -67,6 +83,10 @@ function Ventas() {
             ))}
           </tbody>
         </table>
+
+        {ventas.length === 0 && !error && (
+          <p>No hay ventas registradas.</p>
+        )}
       </div>
     </div>
   )
