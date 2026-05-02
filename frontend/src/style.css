@@ -417,6 +417,10 @@ th {
   opacity: 1;
 }
 
+.backToIndex {
+  margin-bottom: 14px;
+}
+
 @media (max-width: 900px) {
   .topbar {
     height: auto;

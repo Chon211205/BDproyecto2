@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function Reportes() {
@@ -14,6 +14,30 @@ function Reportes() {
   const [clientesCompras, setClientesCompras] = useState([])
   const [productosSinVentas, setProductosSinVentas] = useState([])
   const [vistaVentas, setVistaVentas] = useState([])
+  const cardsRef = useRef(null)
+  const ventasClientesRef = useRef(null)
+  const productosVendidosRef = useRef(null)
+  const ventasPorClienteRef = useRef(null)
+  const productosPromedioRef = useRef(null)
+  const clientesComprasRef = useRef(null)
+  const productosSinVentasRef = useRef(null)
+  const clientesDireccionesRef = useRef(null)
+  const movimientosProductoRef = useRef(null)
+  const vistaVentasRef = useRef(null)
+
+  function irAReporte(ref) {
+    ref.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+  }
+
+  function irAReporte(ref) {
+    ref.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+  }
 
   useEffect(() => {
     async function cargarReportes() {
@@ -45,12 +69,9 @@ function Reportes() {
         const resVistaVentas = await fetch('http://localhost:3000/api/reportes/vista-ventas-completas')
         const dataVistaVentas = await resVistaVentas.json()
 
-setVistaVentas(Array.isArray(dataVistaVentas) ? dataVistaVentas : [])
-
-setProductosSinVentas(Array.isArray(dataSinVentas) ? dataSinVentas : [])
-
-setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : [])
-
+        setVistaVentas(Array.isArray(dataVistaVentas) ? dataVistaVentas : [])
+        setProductosSinVentas(Array.isArray(dataSinVentas) ? dataSinVentas : [])
+        setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : [])
         setVentasClientes(Array.isArray(dataVentas) ? dataVentas : [])
         setProductosVendidos(Array.isArray(dataVendidos) ? dataVendidos : [])
         setVentasPorCliente(Array.isArray(dataCliente) ? dataCliente : [])
@@ -81,70 +102,73 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
 
       {error && <p className="errorMessage">{error}</p>}
 
-      <div className="cards">
-        <div className="card">
+      <div className="cards" ref={cardsRef}>
+        <div className="card clickable" onClick={() => irAReporte(ventasClientesRef)}>
           <span>JOIN</span>
           <h2>{ventasClientes.length}</h2>
           <p>Ventas con cliente</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(productosVendidosRef)}>
           <span>CTE</span>
           <h2>{productosVendidos.length}</h2>
           <p>Productos vendidos</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(ventasPorClienteRef)}>
           <span>GROUP BY</span>
           <h2>{ventasPorCliente.length}</h2>
           <p>Ventas por cliente</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(productosPromedioRef)}>
           <span>SUBQUERY</span>
           <h2>{productosPromedio.length}</h2>
           <p>Precio sobre promedio</p>
         </div>
-      
-        <div className="card">
+
+        <div className="card clickable" onClick={() => irAReporte(clientesComprasRef)}>
           <span>SUBQUERY</span>
           <h2>{clientesCompras.length}</h2>
           <p>Clientes con compras</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(productosSinVentasRef)}>
           <span>SUBQUERY</span>
           <h2>{productosSinVentas.length}</h2>
           <p>Productos sin ventas</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(clientesDireccionesRef)}>
           <span>JOIN</span>
           <h2>{clientesDirecciones.length}</h2>
           <p>Clientes con dirección</p>
         </div>
-    
-        <div className="card">
+
+        <div className="card clickable" onClick={() => irAReporte(movimientosProductoRef)}>
           <span>AGREGACIÓN</span>
           <h2>{movimientosProducto.length}</h2>
           <p>Movimientos por producto</p>
         </div>
 
-        <div className="card">
+        <div className="card clickable" onClick={() => irAReporte(vistaVentasRef)}>
           <span>VIEW</span>
           <h2>{vistaVentas.length}</h2>
           <p>Ventas completas</p>
         </div>
-
-
       </div>
 
+      <div className="panel" ref={ventasClientesRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 1: Ventas con cliente y empleado (JOIN)</h3>
+            <p>Este reporte combina las tablas venta, cliente y empleado.</p>
+          </div>
 
-
-
-      <div className="panel">
-        <h3>Reporte 1: Ventas con cliente y empleado (JOIN)</h3>
-        <p>Este reporte combina las tablas venta, cliente y empleado.</p>
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -173,9 +197,17 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
 
       <br />
 
-      <div className="panel">
-        <h3>Reporte 2: Productos más vendidos (CTE)</h3>
-        <p>Este reporte calcula la cantidad total vendida por producto.</p>
+      <div className="panel" ref={productosVendidosRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 2: Productos más vendidos (CTE)</h3>
+            <p>Este reporte calcula la cantidad total vendida por producto.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -200,9 +232,17 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
 
       <br />
 
-      <div className="panel">
-        <h3>Reporte 3: Ventas agrupadas por cliente (GROUP BY + HAVING)</h3>
-        <p>Este reporte muestra los clientes con compras mayores a Q30.</p>
+      <div className="panel" ref={ventasPorClienteRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 3: Ventas agrupadas por cliente (GROUP BY + HAVING)</h3>
+            <p>Este reporte muestra los clientes con compras mayores a Q30.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -229,9 +269,17 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
 
       <br />
 
-      <div className="panel">
-        <h3>Reporte 4: Productos con precio mayor al promedio (Subquery)</h3>
-        <p>Este reporte usa una subconsulta para comparar precios contra el promedio general.</p>
+      <div className="panel" ref={productosPromedioRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 4: Productos con precio mayor al promedio (Subquery)</h3>
+            <p>Este reporte usa una subconsulta para comparar precios contra el promedio general.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -256,12 +304,91 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
 
       <br />
 
-      <div className="panel">
-        <h3>Reporte 5: Clientes con dirección registrada (JOIN)</h3>
-        <p>
-          Este reporte combina las tablas cliente y direccion_cliente para mostrar
-          la ubicación registrada de cada cliente.
-        </p>
+      <div className="panel" ref={clientesComprasRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 5: Clientes que realizaron compras (Subquery IN)</h3>
+            <p>Este reporte muestra los clientes cuyo ID aparece dentro de la tabla venta.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Cliente</th>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {clientesCompras.map(cliente => (
+              <tr key={cliente.idcliente}>
+                <td>{cliente.idcliente}</td>
+                <td>{cliente.nombrecliente} {cliente.apellidocliente}</td>
+                <td>{cliente.correocliente}</td>
+                <td>{cliente.telefonocliente}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <br />
+
+      <div className="panel" ref={productosSinVentasRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 6: Productos sin ventas (Subquery NOT IN)</h3>
+            <p>Este reporte muestra los productos que todavía no aparecen en ningún detalle de venta.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID Producto</th>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {productosSinVentas.map(producto => (
+              <tr key={producto.idproducto}>
+                <td>{producto.idproducto}</td>
+                <td>{producto.nombreproducto}</td>
+                <td>Q{producto.precio}</td>
+                <td>{producto.stock}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <br />
+
+      <div className="panel" ref={clientesDireccionesRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 7: Clientes con dirección registrada (JOIN)</h3>
+            <p>Este reporte combina las tablas cliente y direccion_cliente.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -290,13 +417,19 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
         </table>
       </div>
 
-      <br/>
+      <br />
 
-      <div className="panel">
-        <h3>Reporte 6: Movimientos de inventario por producto</h3>
-        <p>
-          Este reporte calcula las entradas, salidas y balance de inventario por cada producto.
-        </p>
+      <div className="panel" ref={movimientosProductoRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 8: Movimientos de inventario por producto</h3>
+            <p>Este reporte calcula entradas, salidas y balance de inventario.</p>
+          </div>
+
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -325,80 +458,21 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
             ))}
           </tbody>
         </table>
-      </div>     
-
-      <br />
-
-      <div className="panel">
-        <h3>Reporte: Clientes que realizaron compras (Subquery IN)</h3>
-        <p>
-          Este reporte muestra los clientes cuyo ID aparece dentro de la tabla venta.
-        </p>
-
-        <table>
-          <thead>
-            <tr>
-              <th>ID Cliente</th>
-              <th>Cliente</th>
-              <th>Correo</th>
-              <th>Teléfono</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {clientesCompras.map(cliente => (
-              <tr key={cliente.idcliente}>
-                <td>{cliente.idcliente}</td>
-                <td>
-                  {cliente.nombrecliente} {cliente.apellidocliente}
-                </td>
-                <td>{cliente.correocliente}</td>
-                <td>{cliente.telefonocliente}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
 
       <br />
 
-      <div className="panel">
-        <h3>Reporte: Productos sin ventas (Subquery NOT IN)</h3>
-        <p>
-          Este reporte muestra los productos que todavía no aparecen en ningún detalle de venta.
-        </p>
+      <div className="panel" ref={vistaVentasRef}>
+        <div className="panelTitle">
+          <div>
+            <h3>Reporte 9: Vista de ventas completas (VIEW)</h3>
+            <p>Este reporte utiliza una VIEW de PostgreSQL para mostrar ventas completas.</p>
+          </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID Producto</th>
-              <th>Producto</th>
-              <th>Precio</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {productosSinVentas.map(producto => (
-              <tr key={producto.idproducto}>
-                <td>{producto.idproducto}</td>
-                <td>{producto.nombreproducto}</td>
-                <td>Q{producto.precio}</td>
-                <td>{producto.stock}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <br />
-
-      <div className="panel">
-        <h3>Reporte: Vista de ventas completas (VIEW)</h3>
-        <p>
-          Este reporte utiliza una VIEW de PostgreSQL para mostrar ventas con cliente,
-          empleado, método de pago y monto pagado.
-        </p>
+          <button className="secondaryButton" onClick={() => irAReporte(cardsRef)}>
+            ↑ Volver al índice
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -428,7 +502,6 @@ setClientesCompras(Array.isArray(dataClientesCompras) ? dataClientesCompras : []
           </tbody>
         </table>
       </div>
-
     </div>
   )
 }
