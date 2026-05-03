@@ -93,12 +93,6 @@ Esto levanta toda la infraestructura definida en `docker-compose.yml`:
 
 pgAdmin se inicializa con el servidor `Proyecto 2 DB` registrado automaticamente. La conexion usa las variables de `.env` para el host, usuario, base de datos y contrasena.
 
-En dado caso de que pida la contrasena en pgAdmin para conectarse al servidor de la base de datos es la siguienteÑ
-
-```text
-Contrasena: secret
-```
-
 ## Usuario inicial
 
 La base de datos local se inicializa con un usuario para iniciar sesion:
@@ -109,6 +103,12 @@ Contrasena: secret
 ```
 
 Tambien se pueden crear usuarios nuevos desde la pantalla de registro.
+
+En dado caso de que pida la contrasena en pgAdmin para conectarse al servidor de la base de datos es la siguienteÑ
+
+```text
+Contrasena: secret
+```
 
 ## Base de datos
 
