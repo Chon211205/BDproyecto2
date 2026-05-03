@@ -185,7 +185,10 @@ INSERT INTO producto (idProducto, nombreProducto, precio, stock, idCategoria, id
 (22, 'Chocolate para taza', 15.00, 21, 22, 22),
 (23, 'Gel antibacterial 250ml', 13.50, 29, 17, 23),
 (24, 'Pastelito de chocolate', 6.00, 32, 23, 24),
-(25, 'Bebida energética 473ml', 12.50, 26, 25, 25);
+(25, 'Bebida energética 473ml', 12.50, 26, 25, 25),
+(26, 'Galletas integrales', 9.75, 20, 5, 6),
+(27, 'Agua mineral 600ml', 5.50, 45, 1, 1),
+(28, 'Cepillo dental', 11.00, 18, 9, 10);
 
 INSERT INTO inventario_movimiento (idMovimiento, tipo, cantidad, fecha, idProducto) VALUES
 (1, 'entrada', 20, '2026-04-01', 1),
