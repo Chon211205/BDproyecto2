@@ -93,6 +93,12 @@ Esto levanta toda la infraestructura definida en `docker-compose.yml`:
 
 pgAdmin se inicializa con el servidor `Proyecto 2 DB` registrado automaticamente. La conexion usa las variables de `.env` para el host, usuario, base de datos y contrasena.
 
+En dado caso de que pida la contrasena en pgAdmin para conectarse al servidor de la base de datos es la siguienteÑ
+
+```text
+Contrasena: secret
+```
+
 ## Usuario inicial
 
 La base de datos local se inicializa con un usuario para iniciar sesion:
@@ -110,13 +116,6 @@ El contenedor de PostgreSQL carga automaticamente:
 
 - `backend/src/database/schema.sql`
 - `backend/src/database/seed.sql`
-
-Si ya habias levantado el proyecto antes de cambiar los scripts SQL, recrea el volumen de la base de datos para que Docker vuelva a cargar el esquema y los datos iniciales:
-
-```bash
-docker compose down -v
-docker compose up --build
-```
 
 Tambien se incluyen scripts de avance en `scripts/`:
 
