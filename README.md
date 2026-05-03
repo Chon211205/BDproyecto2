@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 # Proyecto 2 Base de Datos 1
 
 Aplicacion web para gestion de tienda con frontend en React, backend en Node.js/Express y base de datos PostgreSQL.
 
-## Requisitos
-=======
 # UVGestore
 
 UVGestore es una aplicación web de gestión para una tienda. El sistema permite administrar productos, categorías, proveedores, clientes, direcciones, empleados, ventas, inventario y reportes. La aplicación utiliza frontend en React, backend en Node.js/Express y base de datos PostgreSQL, todo levantado mediante Docker Compose.
@@ -43,12 +40,10 @@ UVGestore es una aplicación web de gestión para una tienda. El sistema permite
 ## Requisitos previos
 
 Antes de ejecutar el proyecto, se necesita tener instalado:
->>>>>>> cf49267b839b93156b49c5c5b80a9137aeb5089e
 
 - Docker
 - Docker Compose
 
-<<<<<<< HEAD
 ## Configuracion
 
 El proyecto usa variables de entorno. Antes de levantarlo, crea el archivo `.env` a partir del ejemplo:
@@ -85,7 +80,7 @@ docker compose up --build
 Esto levanta toda la infraestructura definida en `docker-compose.yml`:
 
 - Base de datos PostgreSQL
-- Backend Express
+- Backend Expres
 - Frontend React/Vite
 - pgAdmin
 
@@ -127,14 +122,10 @@ Tambien se incluyen scripts de avance en `scripts/`:
 - `inserts.sql`
 - `index.sql`
 
-## SQL y transacciones
-
-El backend usa SQL explicito mediante el paquete `pg`; no se usa ORM. Las transacciones se marcan explicitamente en el codigo con `BEGIN`, `COMMIT` y `ROLLBACK`, por ejemplo en el registro de ventas y actualizacion de productos.
-=======
 ## Cómo ejecutar el proyecto
 
 Desde la raíz del proyecto, ejecutar:
 
 ```bash
 docker compose up --build
->>>>>>> cf49267b839b93156b49c5c5b80a9137aeb5089e
+
