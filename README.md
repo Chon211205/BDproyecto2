@@ -96,12 +96,30 @@ Esto levanta toda la infraestructura definida en `docker-compose.yml`:
 - Prueba de base de datos: http://localhost:3000/api/test-db
 - pgAdmin: http://localhost:5050
 
+## Usuario inicial
+
+La base de datos local se inicializa con un usuario para iniciar sesion:
+
+```text
+Correo: proy2@gmail.com
+Contrasena: secret
+```
+
+Tambien se pueden crear usuarios nuevos desde la pantalla de registro.
+
 ## Base de datos
 
 El contenedor de PostgreSQL carga automaticamente:
 
 - `backend/src/database/schema.sql`
 - `backend/src/database/seed.sql`
+
+Si ya habias levantado el proyecto antes de cambiar los scripts SQL, recrea el volumen de la base de datos para que Docker vuelva a cargar el esquema y los datos iniciales:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
 
 Tambien se incluyen scripts de avance en `scripts/`:
 

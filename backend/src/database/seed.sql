@@ -294,3 +294,6 @@ INSERT INTO pago (idPago, monto, fecha, idVenta, idMetodoPago) VALUES
 (23, 13.50, '2026-04-23', 23, 23),
 (24, 12.00, '2026-04-24', 24, 24),
 (25, 25.00, '2026-04-25', 25, 25);
+
+INSERT INTO usuario (nombreUsuario, correoUsuario, passwordUsuario, rol) VALUES
+('Administrador', 'proy2@gmail.com', 'secret', 'admin');
