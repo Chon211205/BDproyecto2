@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Proveedores() {
   const navigate = useNavigate()
@@ -9,6 +10,8 @@ function Proveedores() {
   const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
 
   const [form, setForm] = useState({
     nombreProveedor: '',
@@ -33,6 +36,43 @@ function Proveedores() {
       telefonoProveedor: '',
       correoProveedor: ''
     })
+  }
+
+  function abrirModalEliminar(proveedor) {
+    setElementoEliminar(proveedor)
+    setModalEliminar(true)
+  }
+
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarProveedor() {
+    if (!elementoEliminar) return
+
+    setMensaje('')
+    setError('')
+
+    fetch(`http://localhost:3000/api/proveedores/${elementoEliminar.idproveedor}`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+          cerrarModalEliminar()
+          return
+        }
+
+        setMensaje('Proveedor eliminado correctamente')
+        cerrarModalEliminar()
+        cargarProveedores()
+      })
+      .catch(() => {
+        setError('Error al eliminar proveedor')
+        cerrarModalEliminar()
+      })
   }
 
   function cancelarFormulario() {
@@ -270,7 +310,7 @@ function Proveedores() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarProveedor(proveedor.idproveedor)}
+                    onClick={() => abrirModalEliminar(proveedor)}
                   >
                     Eliminar
                   </button>
@@ -280,6 +320,16 @@ function Proveedores() {
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar proveedor"
+          mensaje={`¿Seguro que deseas eliminar el proveedor "${elementoEliminar.nombreproveedor}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarProveedor}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
+
     </div>
   )
 }

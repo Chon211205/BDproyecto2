@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 
 function Reportes() {
   const navigate = useNavigate()
-
   const [ventasClientes, setVentasClientes] = useState([])
   const [productosVendidos, setProductosVendidos] = useState([])
   const [ventasPorCliente, setVentasPorCliente] = useState([])

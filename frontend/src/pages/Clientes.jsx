@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Clientes() {
   const navigate = useNavigate()
+
   const [clientes, setClientes] = useState([])
-  const [editandoId, setEditandoId] = useState(null)
-  const [mensaje, setMensaje] = useState('')
-  const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
+
   const [busqueda, setBusqueda] = useState('')
   const [filtroCiudad, setFiltroCiudad] = useState('')
+
+  const [mensaje, setMensaje] = useState('')
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     nombreCliente: '',
@@ -23,6 +28,17 @@ function Clientes() {
       .then(res => res.json())
       .then(data => setClientes(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar los clientes'))
+  }
+
+  useEffect(() => {
+    cargarClientes()
+  }, [])
+
+  function handleChange(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
   }
 
   function abrirFormularioNuevo() {
@@ -51,41 +67,13 @@ function Clientes() {
     })
   }
 
-  useEffect(() => {
-    cargarClientes()
-  }, [])
-
-  function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  function cargarEdicion(cliente) {
-    setEditandoId(cliente.idcliente)
-
-    setForm({
-      nombreCliente: cliente.nombrecliente,
-      apellidoCliente: cliente.apellidocliente,
-      correoCliente: cliente.correocliente,
-      telefonoCliente: cliente.telefonocliente
-    })
-  }
-
   function guardarCliente(e) {
     e.preventDefault()
     setMensaje('')
     setError('')
 
-    const url = editandoId
-      ? `http://localhost:3000/api/clientes/${editandoId}`
-      : 'http://localhost:3000/api/clientes'
-
-    const method = editandoId ? 'PUT' : 'POST'
-
-    fetch(url, {
-      method,
+    fetch('http://localhost:3000/api/clientes', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
     })
@@ -96,58 +84,76 @@ function Clientes() {
           return
         }
 
-        setMensaje(editandoId ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente')
+        setMensaje('Cliente creado correctamente')
         setMostrarFormulario(false)
-        setEditandoId(null)
+
         setForm({
           nombreCliente: '',
           apellidoCliente: '',
           correoCliente: '',
           telefonoCliente: ''
         })
+
         cargarClientes()
       })
       .catch(() => setError('Error al guardar cliente'))
   }
 
-  function eliminarCliente(idCliente) {
-    const confirmar = window.confirm('¿Seguro que deseas eliminar este cliente?')
+  function abrirModalEliminar(cliente) {
+    setElementoEliminar(cliente)
+    setModalEliminar(true)
+  }
 
-    if (!confirmar) return
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarCliente() {
+    if (!elementoEliminar) return
 
     setMensaje('')
     setError('')
 
-    fetch(`http://localhost:3000/api/clientes/${idCliente}`, {
+    fetch(`http://localhost:3000/api/clientes/${elementoEliminar.idcliente}`, {
       method: 'DELETE'
     })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           setError(data.error)
+          cerrarModalEliminar()
           return
         }
 
         setMensaje('Cliente eliminado correctamente')
+        cerrarModalEliminar()
         cargarClientes()
       })
-      .catch(() => setError('Error al eliminar cliente'))
+      .catch(() => {
+        setError('Error al eliminar cliente')
+        cerrarModalEliminar()
+      })
   }
 
-  const ciudadesClientes = [...new Set(
-    clientes
-      .map(cliente => cliente.ciudad)
-      .filter(Boolean)
-  )]
+  const ciudadesClientes = [
+    ...new Set(
+      clientes
+        .map(cliente => cliente.ciudad)
+        .filter(Boolean)
+    )
+  ]
 
   const clientesFiltrados = clientes.filter(cliente => {
+    const textoBusqueda = busqueda.toLowerCase()
+
     const coincideBusqueda =
-      cliente.nombrecliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cliente.apellidocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cliente.correocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cliente.telefonocliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cliente.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      cliente.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+      cliente.nombrecliente?.toLowerCase().includes(textoBusqueda) ||
+      cliente.apellidocliente?.toLowerCase().includes(textoBusqueda) ||
+      cliente.correocliente?.toLowerCase().includes(textoBusqueda) ||
+      cliente.telefonocliente?.toLowerCase().includes(textoBusqueda) ||
+      cliente.direccioncliente?.toLowerCase().includes(textoBusqueda) ||
+      cliente.ciudad?.toLowerCase().includes(textoBusqueda)
 
     const coincideCiudad =
       filtroCiudad === '' || cliente.ciudad === filtroCiudad
@@ -244,12 +250,23 @@ function Clientes() {
           onChange={(e) => setFiltroCiudad(e.target.value)}
         >
           <option value="">Todas las ciudades</option>
+
           {ciudadesClientes.map(ciudad => (
             <option key={ciudad} value={ciudad}>
               {ciudad}
             </option>
           ))}
         </select>
+
+        <button
+          className="secondaryButton"
+          onClick={() => {
+            setBusqueda('')
+            setFiltroCiudad('')
+          }}
+        >
+          Limpiar
+        </button>
       </div>
 
       <div className="panel">
@@ -297,16 +314,31 @@ function Clientes() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarCliente(cliente.idcliente)}
+                    onClick={() => abrirModalEliminar(cliente)}
                   >
                     Eliminar
                   </button>
                 </td>
               </tr>
             ))}
+
+            {clientesFiltrados.length === 0 && (
+              <tr>
+                <td colSpan="8">No se encontraron clientes.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar cliente"
+          mensaje={`¿Seguro que deseas eliminar al cliente "${elementoEliminar.nombrecliente} ${elementoEliminar.apellidocliente}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarCliente}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
     </div>
   )
 }

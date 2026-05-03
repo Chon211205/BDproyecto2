@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Categorias() {
   const navigate = useNavigate()
@@ -10,6 +11,8 @@ function Categorias() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [filtroCiudad, setFiltroCiudad] = useState('')
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
 
   const [form, setForm] = useState({
     nombreCategoria: '',
@@ -31,6 +34,43 @@ function Categorias() {
       nombreCategoria: '',
       descripcionCategoria: ''
     })
+  }
+
+  function abrirModalEliminar(categoria) {
+    setElementoEliminar(categoria)
+    setModalEliminar(true)
+  }
+
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarCategoria() {
+    if (!elementoEliminar) return
+
+    setMensaje('')
+    setError('')
+
+    fetch(`http://localhost:3000/api/categorias/${elementoEliminar.idcategoria}`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+          cerrarModalEliminar()
+          return
+        }
+
+        setMensaje('Categoría eliminada correctamente')
+        cerrarModalEliminar()
+        cargarCategorias()
+      })
+      .catch(() => {
+        setError('Error al eliminar categoría')
+        cerrarModalEliminar()
+      })
   }
 
   function cancelarFormulario() {
@@ -252,7 +292,7 @@ function Categorias() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarCategoria(categoria.idcategoria)}
+                    onClick={() => abrirModalEliminar(categoria)}
                   >
                     Eliminar
                   </button>
@@ -262,6 +302,16 @@ function Categorias() {
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar categoría"
+          mensaje={`¿Seguro que deseas eliminar la categoría "${elementoEliminar.nombrecategoria}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarCategoria}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
+      
     </div>
   )
 }

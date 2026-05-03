@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Empleados() {
   const navigate = useNavigate()
+
   const [empleados, setEmpleados] = useState([])
-  const [editandoId, setEditandoId] = useState(null)
-  const [mensaje, setMensaje] = useState('')
-  const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
+
   const [busqueda, setBusqueda] = useState('')
   const [filtroPuesto, setFiltroPuesto] = useState('')
+
+  const [mensaje, setMensaje] = useState('')
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     nombreEmpleado: '',
@@ -22,6 +27,17 @@ function Empleados() {
       .then(res => res.json())
       .then(data => setEmpleados(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar los empleados'))
+  }
+
+  useEffect(() => {
+    cargarEmpleados()
+  }, [])
+
+  function handleChange(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
   }
 
   function abrirFormularioNuevo() {
@@ -48,40 +64,13 @@ function Empleados() {
     })
   }
 
-  useEffect(() => {
-    cargarEmpleados()
-  }, [])
-
-  function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  function cargarEdicion(empleado) {
-    setEditandoId(empleado.idempleado)
-
-    setForm({
-      nombreEmpleado: empleado.nombreempleado,
-      apellidoEmpleado: empleado.apellidoempleado,
-      puesto: empleado.puesto
-    })
-  }
-
   function guardarEmpleado(e) {
     e.preventDefault()
     setMensaje('')
     setError('')
 
-    const url = editandoId
-      ? `http://localhost:3000/api/empleados/${editandoId}`
-      : 'http://localhost:3000/api/empleados'
-
-    const method = editandoId ? 'PUT' : 'POST'
-
-    fetch(url, {
-      method,
+    fetch('http://localhost:3000/api/empleados', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
     })
@@ -92,59 +81,64 @@ function Empleados() {
           return
         }
 
-        setMensaje(editandoId ? 'Empleado actualizado correctamente' : 'Empleado creado correctamente')
+        setMensaje('Empleado creado correctamente')
         setMostrarFormulario(false)
-        setEditandoId(null)
+
         setForm({
           nombreEmpleado: '',
           apellidoEmpleado: '',
           puesto: ''
         })
+
         cargarEmpleados()
       })
       .catch(() => setError('Error al guardar empleado'))
   }
 
-  function eliminarEmpleado(idEmpleado) {
-    const confirmar = window.confirm('¿Seguro que deseas eliminar este empleado?')
+  function abrirModalEliminar(empleado) {
+    setElementoEliminar(empleado)
+    setModalEliminar(true)
+  }
 
-    if (!confirmar) return
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarEmpleado() {
+    if (!elementoEliminar) return
 
     setMensaje('')
     setError('')
 
-    fetch(`http://localhost:3000/api/empleados/${idEmpleado}`, {
+    fetch(`http://localhost:3000/api/empleados/${elementoEliminar.idempleado}`, {
       method: 'DELETE'
     })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           setError(data.error)
+          cerrarModalEliminar()
           return
         }
 
         setMensaje('Empleado eliminado correctamente')
+        cerrarModalEliminar()
         cargarEmpleados()
       })
-      .catch(() => setError('Error al eliminar empleado'))
-  }
-
-  function cancelarEdicion() {
-    setEditandoId(null)
-    setForm({
-      nombreEmpleado: '',
-      apellidoEmpleado: '',
-      puesto: ''
-    })
-    setMensaje('')
-    setError('')
+      .catch(() => {
+        setError('Error al eliminar empleado')
+        cerrarModalEliminar()
+      })
   }
 
   const empleadosFiltrados = empleados.filter(empleado => {
+    const textoBusqueda = busqueda.toLowerCase()
+
     const coincideBusqueda =
-      empleado.nombreempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      empleado.apellidoempleado?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      empleado.puesto?.toLowerCase().includes(busqueda.toLowerCase())
+      empleado.nombreempleado?.toLowerCase().includes(textoBusqueda) ||
+      empleado.apellidoempleado?.toLowerCase().includes(textoBusqueda) ||
+      empleado.puesto?.toLowerCase().includes(textoBusqueda)
 
     const coincidePuesto =
       filtroPuesto === '' || empleado.puesto === filtroPuesto
@@ -245,6 +239,16 @@ function Empleados() {
           <option value="Administrador">Administrador</option>
           <option value="Bodeguero">Bodeguero</option>
         </select>
+
+        <button
+          className="secondaryButton"
+          onClick={() => {
+            setBusqueda('')
+            setFiltroPuesto('')
+          }}
+        >
+          Limpiar
+        </button>
       </div>
 
       <div className="panel">
@@ -286,16 +290,31 @@ function Empleados() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarEmpleado(empleado.idempleado)}
+                    onClick={() => abrirModalEliminar(empleado)}
                   >
                     Eliminar
                   </button>
                 </td>
               </tr>
             ))}
+
+            {empleadosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan="5">No se encontraron empleados.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar empleado"
+          mensaje={`¿Seguro que deseas eliminar al empleado "${elementoEliminar.nombreempleado} ${elementoEliminar.apellidoempleado}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarEmpleado}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
     </div>
   )
 }

@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Direcciones() {
   const navigate = useNavigate()
 
   const [direcciones, setDirecciones] = useState([])
   const [clientes, setClientes] = useState([])
-  const [editandoId, setEditandoId] = useState(null)
-  const [mensaje, setMensaje] = useState('')
-  const [error, setError] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
+
   const [busqueda, setBusqueda] = useState('')
   const [filtroCiudad, setFiltroCiudad] = useState('')
+
+  const [mensaje, setMensaje] = useState('')
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     direccionCliente: '',
@@ -24,6 +28,25 @@ function Direcciones() {
       .then(res => res.json())
       .then(data => setDirecciones(Array.isArray(data) ? data : []))
       .catch(() => setError('No se pudieron cargar las direcciones'))
+  }
+
+  function cargarClientes() {
+    fetch('http://localhost:3000/api/clientes')
+      .then(res => res.json())
+      .then(data => setClientes(Array.isArray(data) ? data : []))
+      .catch(() => setError('No se pudieron cargar los clientes'))
+  }
+
+  useEffect(() => {
+    cargarDirecciones()
+    cargarClientes()
+  }, [])
+
+  function handleChange(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
   }
 
   function abrirFormularioNuevo() {
@@ -50,48 +73,13 @@ function Direcciones() {
     })
   }
 
-  function cargarClientes() {
-    fetch('http://localhost:3000/api/clientes')
-      .then(res => res.json())
-      .then(data => setClientes(Array.isArray(data) ? data : []))
-      .catch(() => setError('No se pudieron cargar los clientes'))
-  }
-
-  useEffect(() => {
-    cargarDirecciones()
-    cargarClientes()
-  }, [])
-
-  function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  function cargarEdicion(direccion) {
-    setEditandoId(direccion.iddireccion)
-
-    setForm({
-      direccionCliente: direccion.direccioncliente,
-      ciudad: direccion.ciudad,
-      idCliente: direccion.idcliente
-    })
-  }
-
   function guardarDireccion(e) {
     e.preventDefault()
     setMensaje('')
     setError('')
 
-    const url = editandoId
-      ? `http://localhost:3000/api/direcciones/${editandoId}`
-      : 'http://localhost:3000/api/direcciones'
-
-    const method = editandoId ? 'PUT' : 'POST'
-
-    fetch(url, {
-      method,
+    fetch('http://localhost:3000/api/direcciones', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         direccionCliente: form.direccionCliente,
@@ -106,65 +94,72 @@ function Direcciones() {
           return
         }
 
-        setMensaje(editandoId ? 'Dirección actualizada correctamente' : 'Dirección creada correctamente')
+        setMensaje('Dirección creada correctamente')
         setMostrarFormulario(false)
-        setEditandoId(null)
+
         setForm({
           direccionCliente: '',
           ciudad: '',
           idCliente: ''
         })
+
         cargarDirecciones()
       })
       .catch(() => setError('Error al guardar dirección'))
   }
 
-  function eliminarDireccion(idDireccion) {
-    const confirmar = window.confirm('¿Seguro que deseas eliminar esta dirección?')
+  function abrirModalEliminar(direccion) {
+    setElementoEliminar(direccion)
+    setModalEliminar(true)
+  }
 
-    if (!confirmar) return
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarDireccion() {
+    if (!elementoEliminar) return
 
     setMensaje('')
     setError('')
 
-    fetch(`http://localhost:3000/api/direcciones/${idDireccion}`, {
+    fetch(`http://localhost:3000/api/direcciones/${elementoEliminar.iddireccion}`, {
       method: 'DELETE'
     })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           setError(data.error)
+          cerrarModalEliminar()
           return
         }
 
         setMensaje('Dirección eliminada correctamente')
+        cerrarModalEliminar()
         cargarDirecciones()
       })
-      .catch(() => setError('Error al eliminar dirección'))
+      .catch(() => {
+        setError('Error al eliminar dirección')
+        cerrarModalEliminar()
+      })
   }
 
-  function cancelarEdicion() {
-    setEditandoId(null)
-    setForm({
-      direccionCliente: '',
-      ciudad: '',
-      idCliente: ''
-    })
-    setMensaje('')
-    setError('')
-  }
-
-  const ciudadesDirecciones = [...new Set(
-    direcciones
-      .map(direccion => direccion.ciudad)
-      .filter(Boolean)
-  )]
+  const ciudadesDirecciones = [
+    ...new Set(
+      direcciones
+        .map(direccion => direccion.ciudad)
+        .filter(Boolean)
+    )
+  ]
 
   const direccionesFiltradas = direcciones.filter(direccion => {
+    const textoBusqueda = busqueda.toLowerCase()
+
     const coincideBusqueda =
-      direccion.cliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      direccion.direccioncliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      direccion.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
+      direccion.cliente?.toLowerCase().includes(textoBusqueda) ||
+      direccion.direccioncliente?.toLowerCase().includes(textoBusqueda) ||
+      direccion.ciudad?.toLowerCase().includes(textoBusqueda)
 
     const coincideCiudad =
       filtroCiudad === '' || direccion.ciudad === filtroCiudad
@@ -260,12 +255,23 @@ function Direcciones() {
           onChange={(e) => setFiltroCiudad(e.target.value)}
         >
           <option value="">Todas las ciudades</option>
+
           {ciudadesDirecciones.map(ciudad => (
             <option key={ciudad} value={ciudad}>
               {ciudad}
             </option>
           ))}
         </select>
+
+        <button
+          className="secondaryButton"
+          onClick={() => {
+            setBusqueda('')
+            setFiltroCiudad('')
+          }}
+        >
+          Limpiar
+        </button>
       </div>
 
       <div className="panel">
@@ -298,16 +304,31 @@ function Direcciones() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarDireccion(direccion.iddireccion)}
+                    onClick={() => abrirModalEliminar(direccion)}
                   >
                     Eliminar
                   </button>
                 </td>
               </tr>
             ))}
+
+            {direccionesFiltradas.length === 0 && (
+              <tr>
+                <td colSpan="5">No se encontraron direcciones.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar dirección"
+          mensaje={`¿Seguro que deseas eliminar la dirección de "${elementoEliminar.cliente}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarDireccion}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
     </div>
   )
 }

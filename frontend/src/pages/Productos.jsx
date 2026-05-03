@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '../components/ConfirmModal'
 
 function Productos() {
   const navigate = useNavigate()
@@ -14,6 +15,8 @@ function Productos() {
   const [filtroCategoria, setFiltroCategoria] = useState('')
   const [filtroProveedor, setFiltroProveedor] = useState('')
   const [filtroStock, setFiltroStock] = useState('')
+  const [modalEliminar, setModalEliminar] = useState(false)
+  const [elementoEliminar, setElementoEliminar] = useState(null)
 
 
   const [form, setForm] = useState({
@@ -44,6 +47,43 @@ function Productos() {
       idCategoria: '',
       idProveedor: ''
     })
+  }
+
+  function abrirModalEliminar(producto) {
+    setElementoEliminar(producto)
+    setModalEliminar(true)
+  }
+
+  function cerrarModalEliminar() {
+    setElementoEliminar(null)
+    setModalEliminar(false)
+  }
+
+  function confirmarEliminarProducto() {
+    if (!elementoEliminar) return
+
+    setMensaje('')
+    setError('')
+
+    fetch(`http://localhost:3000/api/productos/${elementoEliminar.idproducto}`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+          cerrarModalEliminar()
+          return
+        }
+
+        setMensaje('Producto eliminado correctamente')
+        cerrarModalEliminar()
+        cargarProductos()
+      })
+      .catch(() => {
+        setError('Error al eliminar producto')
+        cerrarModalEliminar()
+      })
   }
 
   useEffect(() => {
@@ -371,7 +411,7 @@ function Productos() {
 
                   <button
                     className="dangerButton"
-                    onClick={() => eliminarProducto(producto.idproducto)}
+                    onClick={() => abrirModalEliminar(producto)}
                   >
                     Eliminar
                   </button>
@@ -381,6 +421,16 @@ function Productos() {
           </tbody>
         </table>
       </div>
+
+      {modalEliminar && elementoEliminar && (
+        <ConfirmModal
+          titulo="Eliminar producto"
+          mensaje={`¿Seguro que deseas eliminar el producto "${elementoEliminar.nombreproducto}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarProducto}
+          onCancelar={cerrarModalEliminar}
+        />
+      )}
+      
     </div>
   )
 }
