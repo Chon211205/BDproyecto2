@@ -2,8 +2,6 @@
 
 Aplicacion web para gestion de tienda con frontend en React, backend en Node.js/Express y base de datos PostgreSQL.
 
-## Requisitos
-=======
 # UVGestore
 
 UVGestore es una aplicación web de gestión para una tienda. El sistema permite administrar productos, categorías, proveedores, clientes, direcciones, empleados, ventas, inventario y reportes. La aplicación utiliza frontend en React, backend en Node.js/Express y base de datos PostgreSQL, todo levantado mediante Docker Compose.
