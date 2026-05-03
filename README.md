@@ -42,7 +42,6 @@ UVGestore es una aplicación web de gestión para una tienda. El sistema permite
 ## Requisitos previos
 
 Antes de ejecutar el proyecto, se necesita tener instalado:
->>>>>>> cf49267b839b93156b49c5c5b80a9137aeb5089e
 
 - Docker
 - Docker Compose
