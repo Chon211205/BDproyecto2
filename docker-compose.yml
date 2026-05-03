@@ -56,10 +56,22 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: 'True'
     ports:
       - "5050:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    configs:
+      - source: pgadmin_servers
+        target: /pgadmin4/servers.json
+        mode: 0444
+      - source: pgadmin_pgpass
+        target: /config/pgpass
+        uid: "5050"
+        gid: "5050"
+        mode: 0400
     depends_on:
       db:
         condition: service_healthy
@@ -67,3 +79,24 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+
+configs:
+  pgadmin_servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Proyecto 2 DB",
+            "Group": "Servers",
+            "Host": "db",
+            "Port": 5432,
+            "MaintenanceDB": "${POSTGRES_DB}",
+            "Username": "${POSTGRES_USER}",
+            "PassFile": "/config/pgpass",
+            "SSLMode": "prefer"
+          }
+        }
+      }
+  pgadmin_pgpass:
+    content: |
+      db:5432:*:${POSTGRES_USER}:${POSTGRES_PASSWORD}

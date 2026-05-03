@@ -91,6 +91,8 @@ Esto levanta toda la infraestructura definida en `docker-compose.yml`:
 - Prueba de base de datos: http://localhost:3000/api/test-db
 - pgAdmin: http://localhost:5050
 
+pgAdmin se inicializa con el servidor `Proyecto 2 DB` registrado automaticamente. La conexion usa las variables de `.env` para el host, usuario, base de datos y contrasena.
+
 ## Usuario inicial
 
 La base de datos local se inicializa con un usuario para iniciar sesion:
