@@ -1,10 +1,12 @@
 const express = require('express')
 const db = require('../database/db')
+const { ROLES, ALL_ROLES, requireRole } = require('../middleware/roles')
 
 const router = express.Router()
+const reportesRoles = [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.ANALISTA]
 
 // JOIN: ventas con cliente y empleado
-router.get('/ventas-clientes', async (req, res) => {
+router.get('/ventas-clientes', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -27,7 +29,7 @@ router.get('/ventas-clientes', async (req, res) => {
 })
 
 // CTE: productos más vendidos
-router.get('/productos-mas-vendidos', async (req, res) => {
+router.get('/productos-mas-vendidos', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       WITH productos_vendidos AS (
@@ -55,7 +57,7 @@ router.get('/productos-mas-vendidos', async (req, res) => {
 })
 
 // GROUP BY + HAVING: ventas agrupadas por cliente
-router.get('/ventas-por-cliente', async (req, res) => {
+router.get('/ventas-por-cliente', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -77,7 +79,7 @@ router.get('/ventas-por-cliente', async (req, res) => {
   }
 })
 
-router.get('/clientes-direcciones', async (req, res) => {
+router.get('/clientes-direcciones', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
@@ -100,7 +102,7 @@ router.get('/clientes-direcciones', async (req, res) => {
 })
 
 // SUBQUERY: productos con precio mayor al promedio
-router.get('/productos-precio-promedio', async (req, res) => {
+router.get('/productos-precio-promedio', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -122,7 +124,7 @@ router.get('/productos-precio-promedio', async (req, res) => {
   }
 })
 
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', requireRole(ALL_ROLES), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
@@ -139,7 +141,7 @@ router.get('/dashboard', async (req, res) => {
   }
 })
 
-router.get('/dashboard/productos-destacados', async (req, res) => {
+router.get('/dashboard/productos-destacados', requireRole(ALL_ROLES), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -160,7 +162,7 @@ router.get('/dashboard/productos-destacados', async (req, res) => {
   }
 })
 
-router.get('/dashboard/ultimas-ventas', async (req, res) => {
+router.get('/dashboard/ultimas-ventas', requireRole(ALL_ROLES), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -180,7 +182,7 @@ router.get('/dashboard/ultimas-ventas', async (req, res) => {
   }
 })
 
-router.get('/movimientos-producto', async (req, res) => {
+router.get('/movimientos-producto', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
@@ -206,7 +208,7 @@ router.get('/movimientos-producto', async (req, res) => {
   }
 })
 
-router.get('/clientes-con-compras', async (req, res) => {
+router.get('/clientes-con-compras', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
@@ -230,7 +232,7 @@ router.get('/clientes-con-compras', async (req, res) => {
   }
 })
 
-router.get('/productos-sin-ventas', async (req, res) => {
+router.get('/productos-sin-ventas', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
@@ -253,7 +255,7 @@ router.get('/productos-sin-ventas', async (req, res) => {
   }
 })
 
-router.get('/vista-ventas-completas', async (req, res) => {
+router.get('/vista-ventas-completas', requireRole(reportesRoles), async (req, res) => {
   try {
     const result = await db.query(`
       SELECT *

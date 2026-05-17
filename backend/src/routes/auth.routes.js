@@ -95,7 +95,7 @@ router.post('/register', async (req, res) => {
       VALUES ($1, $2, $3, $4)
       RETURNING idUsuario, nombreUsuario, correoUsuario, rol;
       `,
-      [correoUsuario, correoUsuario, passwordUsuario, 'usuario']
+      [correoUsuario, correoUsuario, passwordUsuario, 'vendedor']
     )
 
     res.status(201).json({

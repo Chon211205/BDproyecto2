@@ -61,8 +61,8 @@ function Login() {
         <form className="loginForm" onSubmit={iniciarSesion}>
           <input
             name="correoUsuario"
-            type="email"
-            placeholder="Correo"
+            type="text"
+            placeholder="Usuario o correo"
             value={form.correoUsuario}
             onChange={handleChange}
           />
@@ -91,7 +91,7 @@ function Login() {
         </p>
 
         <p className="loginHint">
-        Credenciales fijas de prueba guardadas en la base de datos | Correo: proy2@gmail.com | Contraseña: secret
+        Credenciales fijas de prueba guardadas en la base de datos | Usuario: proy3 | Contraseña: secret
         </p>
 
       </div>

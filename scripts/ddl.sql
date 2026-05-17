@@ -120,5 +120,91 @@ CREATE TABLE usuario (
     nombreUsuario VARCHAR(100) NOT NULL,
     correoUsuario VARCHAR(150) NOT NULL UNIQUE,
     passwordUsuario VARCHAR(100) NOT NULL,
-    rol VARCHAR(50) NOT NULL DEFAULT 'usuario'
+    rol VARCHAR(50) NOT NULL DEFAULT 'vendedor'
 );
+
+ALTER TABLE usuario
+ADD CONSTRAINT chk_usuario_rol
+CHECK (rol IN ('administrador', 'gerente', 'vendedor', 'bodega', 'analista'));
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_administrador') THEN
+        CREATE ROLE rol_administrador;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_gerente') THEN
+        CREATE ROLE rol_gerente;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_vendedor') THEN
+        CREATE ROLE rol_vendedor;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_bodega') THEN
+        CREATE ROLE rol_bodega;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rol_analista') THEN
+        CREATE ROLE rol_analista;
+    END IF;
+END
+$$;
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO rol_administrador, rol_gerente, rol_vendedor, rol_bodega, rol_analista;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM rol_administrador, rol_gerente, rol_vendedor, rol_bodega, rol_analista;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM rol_administrador, rol_gerente, rol_vendedor, rol_bodega, rol_analista;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO rol_administrador;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_administrador;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+    cliente,
+    direccion_cliente,
+    empleado,
+    categoria,
+    proveedor,
+    producto,
+    inventario_movimiento,
+    venta,
+    detalle_venta,
+    metodo_pago,
+    pago,
+    usuario
+TO rol_gerente;
+GRANT SELECT ON vista_ventas_completas TO rol_gerente;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_gerente;
+
+GRANT SELECT ON producto, categoria, proveedor, empleado, metodo_pago, vista_ventas_completas TO rol_vendedor;
+GRANT SELECT, INSERT, UPDATE ON cliente, direccion_cliente TO rol_vendedor;
+GRANT SELECT, INSERT ON venta, detalle_venta, pago, inventario_movimiento TO rol_vendedor;
+GRANT UPDATE (stock) ON producto TO rol_vendedor;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_vendedor;
+
+GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bodega;
+GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
+GRANT INSERT ON inventario_movimiento TO rol_bodega;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_bodega;
+
+GRANT SELECT ON
+    cliente,
+    direccion_cliente,
+    empleado,
+    categoria,
+    proveedor,
+    producto,
+    inventario_movimiento,
+    venta,
+    detalle_venta,
+    metodo_pago,
+    pago,
+    vista_ventas_completas
+TO rol_analista;
+
+GRANT rol_administrador TO proy3;
+GRANT rol_gerente TO proy3;
+GRANT rol_vendedor TO proy3;
+GRANT rol_bodega TO proy3;
+GRANT rol_analista TO proy3;

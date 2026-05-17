@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 
 import Topbar from './components/Topbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import { ROUTE_ROLES, WRITE_ROLES } from './auth/permissions'
 
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -28,6 +29,11 @@ function AppContent() {
   const location = useLocation()
   const usuarioActivo = localStorage.getItem('usuarioActivo')
   const mostrarTopbar = location.pathname !== '/login' && usuarioActivo
+  const protectedPage = (children, roles) => (
+    <ProtectedRoute roles={roles}>
+      {children}
+    </ProtectedRoute>
+  )
 
   return (
     <>
@@ -39,164 +45,92 @@ function AppContent() {
 
         <Route
           path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Dashboard />, ROUTE_ROLES['/'])}
         />
 
         <Route
           path="/productos"
-          element={
-            <ProtectedRoute>
-              <Productos />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Productos />, ROUTE_ROLES['/productos'])}
         />
 
         <Route
           path="/productos/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarProducto />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarProducto />, WRITE_ROLES.productos)}
         />
 
         <Route
           path="/clientes"
-          element={
-            <ProtectedRoute>
-              <Clientes />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Clientes />, ROUTE_ROLES['/clientes'])}
         />
 
         <Route
           path="/clientes/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarCliente />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarCliente />, WRITE_ROLES.clientes)}
         />
 
         <Route
           path="/categorias"
-          element={
-            <ProtectedRoute>
-              <Categorias />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Categorias />, ROUTE_ROLES['/categorias'])}
         />
 
         <Route
           path="/categorias/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarCategoria />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarCategoria />, WRITE_ROLES.categorias)}
         />
 
         <Route
           path="/proveedores"
-          element={
-            <ProtectedRoute>
-              <Proveedores />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Proveedores />, ROUTE_ROLES['/proveedores'])}
         />
 
         <Route
           path="/proveedores/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarProveedor />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarProveedor />, WRITE_ROLES.proveedores)}
         />
 
         <Route
           path="/direcciones"
-          element={
-            <ProtectedRoute>
-              <Direcciones />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Direcciones />, ROUTE_ROLES['/direcciones'])}
         />
 
         <Route
           path="/direcciones/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarDireccion />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarDireccion />, WRITE_ROLES.direcciones)}
         />
 
         <Route
           path="/empleados"
-          element={
-            <ProtectedRoute>
-              <Empleados />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Empleados />, ROUTE_ROLES['/empleados'])}
         />
 
         <Route
           path="/empleados/:id/editar"
-          element={
-            <ProtectedRoute>
-              <EditarEmpleado />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<EditarEmpleado />, WRITE_ROLES.empleados)}
         />
 
         <Route
           path="/ventas"
-          element={
-            <ProtectedRoute>
-              <Ventas />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Ventas />, ROUTE_ROLES['/ventas'])}
         />
 
         <Route
           path="/ventas/:id/detalle"
-          element={
-            <ProtectedRoute>
-              <DetalleVenta />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<DetalleVenta />, ROUTE_ROLES['/ventas'])}
         />
 
         <Route
           path="/ventas/registrar"
-          element={
-            <ProtectedRoute>
-              <RegistrarVenta />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<RegistrarVenta />, ROUTE_ROLES['/ventas/registrar'])}
         />
 
         <Route
           path="/reportes"
-          element={
-            <ProtectedRoute>
-              <Reportes />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Reportes />, ROUTE_ROLES['/reportes'])}
         />
 
         <Route
           path="/inventario"
-          element={
-            <ProtectedRoute>
-              <Inventario />
-            </ProtectedRoute>
-          }
+          element={protectedPage(<Inventario />, ROUTE_ROLES['/inventario'])}
         />
         
       </Routes>

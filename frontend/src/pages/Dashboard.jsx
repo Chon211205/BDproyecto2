@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTE_ROLES, getUsuarioActivo, hasRole } from '../auth/permissions'
 
 function Dashboard() {
   const navigate = useNavigate()
+  const usuarioActivo = getUsuarioActivo()
 
   const [resumen, setResumen] = useState({
     totalproductos: 0,
@@ -14,6 +16,7 @@ function Dashboard() {
   const [productosDestacados, setProductosDestacados] = useState([])
   const [ultimasVentas, setUltimasVentas] = useState([])
   const [error, setError] = useState('')
+  const canOpen = path => hasRole(usuarioActivo, ROUTE_ROLES[path])
 
   useEffect(() => {
     async function cargarDashboard() {
@@ -51,59 +54,59 @@ function Dashboard() {
       {error && <p className="errorMessage">{error}</p>}
 
       <div className="cards">
-        <div className="card clickable" onClick={() => navigate('/productos')}>
+        {canOpen('/productos') && <div className="card clickable" onClick={() => navigate('/productos')}>
           <span>Inventario</span>
           <h2>{resumen.totalproductos}</h2>
           <p>Productos registrados</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/inventario')}>
+        {canOpen('/inventario') && <div className="card clickable" onClick={() => navigate('/inventario')}>
           <span>Inventario</span>
           <h2>Movimientos</h2>
           <p>Entradas y salidas</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/categorias')}>
+        {canOpen('/categorias') && <div className="card clickable" onClick={() => navigate('/categorias')}>
           <span>Clasificación</span>
           <h2>Categorías</h2>
           <p>Organizar productos</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/proveedores')}>
+        {canOpen('/proveedores') && <div className="card clickable" onClick={() => navigate('/proveedores')}>
           <span>Suministro</span>
           <h2>Proveedores</h2>
           <p>Gestionar proveedores</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/clientes')}>
+        {canOpen('/clientes') && <div className="card clickable" onClick={() => navigate('/clientes')}>
           <span>Clientes</span>
           <h2>{resumen.totalclientes}</h2>
           <p>Clientes registrados</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/direcciones')}>
+        {canOpen('/direcciones') && <div className="card clickable" onClick={() => navigate('/direcciones')}>
           <span>Ubicación</span>
           <h2>Direcciones</h2>
           <p>Direcciones de clientes</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/empleados')}>
+        {canOpen('/empleados') && <div className="card clickable" onClick={() => navigate('/empleados')}>
           <span>Personal</span>
           <h2>Empleados</h2>
           <p>Gestionar empleados</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/ventas')}>
+        {canOpen('/ventas') && <div className="card clickable" onClick={() => navigate('/ventas')}>
           <span>Operaciones</span>
           <h2>{resumen.totalventas}</h2>
           <p>Ventas registradas</p>
-        </div>
+        </div>}
 
-        <div className="card clickable" onClick={() => navigate('/reportes')}>
+        {canOpen('/reportes') && <div className="card clickable" onClick={() => navigate('/reportes')}>
           <span>Total vendido</span>
           <h2>Q{Number(resumen.totalvendido).toFixed(2)}</h2>
           <p>Ver reportes SQL</p>
-        </div>
+        </div>}
       </div>
 
       <div className="grid">

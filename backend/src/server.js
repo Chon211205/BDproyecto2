@@ -15,6 +15,7 @@ const direccionesRoutes = require('./routes/direcciones.routes')
 const inventarioRoutes = require('./routes/inventario.routes')
 const metodosPagoRoutes = require('./routes/metodosPago.routes')
 const authRoutes = require('./routes/auth.routes')
+const { ROLES, ALL_ROLES, requireRole, requireRoleByMethod } = require('./middleware/roles')
 
 const app = express()
 
@@ -42,17 +43,77 @@ app.get('/api/test-db', async (req, res) => {
 })
 
 // Rutas principales
-app.use('/api/productos', productosRoutes)
-app.use('/api/clientes', clientesRoutes)
-app.use('/api/ventas', ventasRoutes)
+app.use(
+  '/api/productos',
+  requireRoleByMethod({
+    GET: ALL_ROLES,
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA]
+  }),
+  productosRoutes
+)
+app.use(
+  '/api/clientes',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE]
+  }),
+  clientesRoutes
+)
+app.use(
+  '/api/ventas',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR]
+  }),
+  ventasRoutes
+)
 app.use('/api/reportes', reportesRoutes)
-app.use('/api/categorias', categoriasRoutes)
-app.use('/api/proveedores', proveedoresRoutes)
-app.use('/api/empleados', empleadosRoutes)
-app.use('/api/reportes', reportesRoutes)
-app.use('/api/direcciones', direccionesRoutes)
-app.use('/api/inventario', inventarioRoutes)
-app.use('/api/metodos-pago', metodosPagoRoutes)
+app.use(
+  '/api/categorias',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE]
+  }),
+  categoriasRoutes
+)
+app.use(
+  '/api/proveedores',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE]
+  }),
+  proveedoresRoutes
+)
+app.use(
+  '/api/empleados',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE]
+  }),
+  empleadosRoutes
+)
+app.use(
+  '/api/direcciones',
+  requireRoleByMethod({
+    GET: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR, ROLES.ANALISTA],
+    POST: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR],
+    PUT: [ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR],
+    DELETE: [ROLES.ADMINISTRADOR, ROLES.GERENTE]
+  }),
+  direccionesRoutes
+)
+app.use('/api/inventario', requireRole([ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.BODEGA, ROLES.ANALISTA]), inventarioRoutes)
+app.use('/api/metodos-pago', requireRole([ROLES.ADMINISTRADOR, ROLES.GERENTE, ROLES.VENDEDOR]), metodosPagoRoutes)
 app.use('/api/auth', authRoutes)
 
 // Manejo de rutas no encontradas

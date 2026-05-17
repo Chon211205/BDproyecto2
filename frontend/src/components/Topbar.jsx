@@ -1,11 +1,20 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ROUTE_ROLES, getUsuarioActivo, hasRole } from '../auth/permissions'
+
+const NAV_LINKS = [
+  { path: '/', label: 'Dashboard' },
+  { path: '/productos', label: 'Productos' },
+  { path: '/clientes', label: 'Clientes' },
+  { path: '/ventas', label: 'Ventas' },
+  { path: '/inventario', label: 'Inventario' },
+  { path: '/reportes', label: 'Reportes' }
+]
 
 function Topbar() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const usuarioGuardado = localStorage.getItem('usuarioActivo')
-  const usuarioActivo = usuarioGuardado ? JSON.parse(usuarioGuardado) : null
+  const usuarioActivo = getUsuarioActivo()
 
   function isActive(path) {
     return location.pathname === path
@@ -27,30 +36,19 @@ function Topbar() {
       </div>
 
       <nav className="topbarLinks">
-        <Link className={isActive('/') ? 'activeLink' : ''} to="/">
-          Dashboard
-        </Link>
-
-        <Link className={isActive('/productos') ? 'activeLink' : ''} to="/productos">
-          Productos
-        </Link>
-
-        <Link className={isActive('/clientes') ? 'activeLink' : ''} to="/clientes">
-          Clientes
-        </Link>
-
-        <Link className={isActive('/ventas') ? 'activeLink' : ''} to="/ventas">
-          Ventas
-        </Link>
-
-        <Link className={isActive('/reportes') ? 'activeLink' : ''} to="/reportes">
-          Reportes
-        </Link>
+        {NAV_LINKS
+          .filter(link => hasRole(usuarioActivo, ROUTE_ROLES[link.path]))
+          .map(link => (
+            <Link className={isActive(link.path) ? 'activeLink' : ''} to={link.path} key={link.path}>
+              {link.label}
+            </Link>
+          ))}
       </nav>
 
       {usuarioActivo && (
         <div className="topbarSession">
           <span>{usuarioActivo.nombreUsuario}</span>
+          <span>{usuarioActivo.rol}</span>
 
           <button className="logoutButton" onClick={cerrarSesion}>
             Cerrar sesión

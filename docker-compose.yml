@@ -86,7 +86,7 @@ configs:
       {
         "Servers": {
           "1": {
-            "Name": "Proyecto 2 DB",
+            "Name": "Proyecto 3 DB",
             "Group": "Servers",
             "Host": "db",
             "Port": 5432,
