@@ -68,17 +68,21 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(
       `
-      INSERT INTO producto (nombreProducto, precio, stock, idCategoria, idProveedor)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *;
+      CALL crear_producto($1, $2, $3, $4, $5, NULL, NULL);
       `,
-      [nombreProducto, precio, stock, idCategoria, idProveedor]
+      [nombreProducto, Number(precio), Number(stock), Number(idCategoria), Number(idProveedor)]
     )
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json({
+      ...result.rows[0].p_producto,
+      movimientoRegistrado: result.rows[0].p_movimiento_registrado
+    })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: 'Error al crear producto' })
+    console.error('Error al ejecutar stored procedure crear_producto:', error.message)
+    res.status(500).json({
+      error: 'Error al crear producto desde stored procedure.',
+      detalle: error.message
+    })
   }
 })
 

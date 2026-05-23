@@ -224,6 +224,75 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE crear_producto(
+    IN p_nombre_producto VARCHAR,
+    IN p_precio NUMERIC,
+    IN p_stock INT,
+    IN p_id_categoria INT,
+    IN p_id_proveedor INT,
+    INOUT p_producto JSONB,
+    INOUT p_movimiento_registrado BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_producto INT;
+    v_id_movimiento INT;
+    v_producto_creado producto%ROWTYPE;
+BEGIN
+    IF p_nombre_producto IS NULL OR LENGTH(TRIM(p_nombre_producto)) = 0 THEN
+        RAISE EXCEPTION 'El nombre del producto es obligatorio';
+    END IF;
+
+    IF p_precio IS NULL OR p_precio < 0 THEN
+        RAISE EXCEPTION 'El precio debe ser mayor o igual a 0';
+    END IF;
+
+    IF p_stock IS NULL OR p_stock < 0 THEN
+        RAISE EXCEPTION 'El stock debe ser mayor o igual a 0';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE idCategoria = p_id_categoria) THEN
+        RAISE EXCEPTION 'Categoria con ID % no existe', p_id_categoria;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM proveedor WHERE idProveedor = p_id_proveedor) THEN
+        RAISE EXCEPTION 'Proveedor con ID % no existe', p_id_proveedor;
+    END IF;
+
+    LOCK TABLE producto, inventario_movimiento IN EXCLUSIVE MODE;
+
+    SELECT COALESCE(MAX(idProducto), 0) + 1
+    INTO v_id_producto
+    FROM producto;
+
+    INSERT INTO producto (idProducto, nombreProducto, precio, stock, idCategoria, idProveedor)
+    VALUES (v_id_producto, p_nombre_producto, p_precio, p_stock, p_id_categoria, p_id_proveedor)
+    RETURNING *
+    INTO v_producto_creado;
+
+    p_movimiento_registrado := p_stock > 0;
+
+    IF p_movimiento_registrado THEN
+        SELECT COALESCE(MAX(idMovimiento), 0) + 1
+        INTO v_id_movimiento
+        FROM inventario_movimiento;
+
+        INSERT INTO inventario_movimiento (idMovimiento, tipo, cantidad, fecha, idProducto)
+        VALUES (v_id_movimiento, 'entrada', p_stock, CURRENT_DATE, v_id_producto);
+    END IF;
+
+    p_producto := jsonb_build_object(
+        'idproducto', v_producto_creado.idProducto,
+        'nombreproducto', v_producto_creado.nombreProducto,
+        'precio', v_producto_creado.precio,
+        'stock', v_producto_creado.stock,
+        'idcategoria', v_producto_creado.idCategoria,
+        'idproveedor', v_producto_creado.idProveedor
+    );
+END;
+$$;
+
 CREATE OR REPLACE PROCEDURE actualizar_producto(
     IN p_id_producto INT,
     IN p_nombre_producto VARCHAR,
@@ -400,6 +469,7 @@ GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bod
 GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
 GRANT INSERT ON inventario_movimiento TO rol_bodega;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_bodega;
+GRANT EXECUTE ON PROCEDURE crear_producto(VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN) TO rol_administrador, rol_gerente, rol_bodega;
 GRANT EXECUTE ON PROCEDURE actualizar_producto(INT, VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN, INT) TO rol_administrador, rol_gerente, rol_bodega;
 
 GRANT SELECT ON
