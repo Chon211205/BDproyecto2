@@ -1,50 +1,34 @@
 const express = require('express')
-const db = require('../database/db')
+const Categoria = require('../models/categoria.model')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        idCategoria,
-        nombreCategoria,
-        descripcionCategoria
-      FROM categoria
-      ORDER BY idCategoria;
-    `)
+    const categorias = await Categoria.findAll({
+      order: [['idcategoria', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(categorias)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener categorías' })
+    res.status(500).json({ error: 'Error al obtener categorias con ORM' })
   }
 })
 
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
+    const categoria = await Categoria.findByPk(Number(id))
 
-    const result = await db.query(
-      `
-      SELECT 
-        idCategoria,
-        nombreCategoria,
-        descripcionCategoria
-      FROM categoria
-      WHERE idCategoria = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
+    if (!categoria) {
+      return res.status(404).json({ error: 'Categoria no encontrada' })
     }
 
-    res.json(result.rows[0])
+    res.json(categoria)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener categoría' })
+    res.status(500).json({ error: 'Error al obtener categoria con ORM' })
   }
 })
 
@@ -56,19 +40,17 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      INSERT INTO categoria (nombreCategoria, descripcionCategoria)
-      VALUES ($1, $2)
-      RETURNING *;
-      `,
-      [nombreCategoria, descripcionCategoria]
-    )
+    const ultimoId = await Categoria.max('idcategoria')
+    const categoria = await Categoria.create({
+      idcategoria: Number(ultimoId || 0) + 1,
+      nombrecategoria: nombreCategoria,
+      descripcioncategoria: descripcionCategoria
+    })
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json(categoria)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al crear categoría' })
+    res.status(500).json({ error: 'Error al crear categoria con ORM' })
   }
 })
 
@@ -81,50 +63,40 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      UPDATE categoria
-      SET nombreCategoria = $1,
-          descripcionCategoria = $2
-      WHERE idCategoria = $3
-      RETURNING *;
-      `,
-      [nombreCategoria, descripcionCategoria, id]
-    )
+    const categoria = await Categoria.findByPk(Number(id))
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
+    if (!categoria) {
+      return res.status(404).json({ error: 'Categoria no encontrada' })
     }
 
-    res.json(result.rows[0])
+    await categoria.update({
+      nombrecategoria: nombreCategoria,
+      descripcioncategoria: descripcionCategoria
+    })
+
+    res.json(categoria)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al actualizar categoría' })
+    res.status(500).json({ error: 'Error al actualizar categoria con ORM' })
   }
 })
 
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params
+    const categoria = await Categoria.findByPk(Number(id))
 
-    const result = await db.query(
-      `
-      DELETE FROM categoria
-      WHERE idCategoria = $1
-      RETURNING *;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
+    if (!categoria) {
+      return res.status(404).json({ error: 'Categoria no encontrada' })
     }
 
-    res.json({ mensaje: 'Categoría eliminada correctamente' })
+    await categoria.destroy()
+
+    res.json({ mensaje: 'Categoria eliminada correctamente con ORM' })
   } catch (error) {
     console.error(error)
     res.status(500).json({
-      error: 'Error al eliminar categoría. Puede estar asociada a productos.'
+      error: 'Error al eliminar categoria con ORM. Puede estar asociada a productos.'
     })
   }
 })
