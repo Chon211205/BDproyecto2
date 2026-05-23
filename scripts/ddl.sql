@@ -224,6 +224,60 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE crear_cliente(
+    IN p_nombre_cliente VARCHAR,
+    IN p_apellido_cliente VARCHAR,
+    IN p_correo_cliente VARCHAR,
+    IN p_telefono_cliente VARCHAR,
+    INOUT p_cliente JSONB
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_cliente INT;
+    v_cliente_creado cliente%ROWTYPE;
+BEGIN
+    IF p_nombre_cliente IS NULL OR LENGTH(TRIM(p_nombre_cliente)) = 0 THEN
+        RAISE EXCEPTION 'El nombre del cliente es obligatorio';
+    END IF;
+
+    IF p_apellido_cliente IS NULL OR LENGTH(TRIM(p_apellido_cliente)) = 0 THEN
+        RAISE EXCEPTION 'El apellido del cliente es obligatorio';
+    END IF;
+
+    IF p_correo_cliente IS NULL OR LENGTH(TRIM(p_correo_cliente)) = 0 THEN
+        RAISE EXCEPTION 'El correo del cliente es obligatorio';
+    END IF;
+
+    IF p_telefono_cliente IS NULL OR LENGTH(TRIM(p_telefono_cliente)) = 0 THEN
+        RAISE EXCEPTION 'El telefono del cliente es obligatorio';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM cliente WHERE correoCliente = p_correo_cliente) THEN
+        RAISE EXCEPTION 'Ya existe un cliente con el correo %', p_correo_cliente;
+    END IF;
+
+    LOCK TABLE cliente IN EXCLUSIVE MODE;
+
+    SELECT COALESCE(MAX(idCliente), 0) + 1
+    INTO v_id_cliente
+    FROM cliente;
+
+    INSERT INTO cliente (idCliente, nombreCliente, apellidoCliente, correoCliente, telefonoCliente)
+    VALUES (v_id_cliente, p_nombre_cliente, p_apellido_cliente, p_correo_cliente, p_telefono_cliente)
+    RETURNING *
+    INTO v_cliente_creado;
+
+    p_cliente := jsonb_build_object(
+        'idcliente', v_cliente_creado.idCliente,
+        'nombrecliente', v_cliente_creado.nombreCliente,
+        'apellidocliente', v_cliente_creado.apellidoCliente,
+        'correocliente', v_cliente_creado.correoCliente,
+        'telefonocliente', v_cliente_creado.telefonoCliente
+    );
+END;
+$$;
+
 CREATE OR REPLACE PROCEDURE crear_producto(
     IN p_nombre_producto VARCHAR,
     IN p_precio NUMERIC,
@@ -463,6 +517,7 @@ GRANT SELECT, INSERT, UPDATE ON cliente, direccion_cliente TO rol_vendedor;
 GRANT SELECT, INSERT ON venta, detalle_venta, pago, inventario_movimiento TO rol_vendedor;
 GRANT UPDATE (stock) ON producto TO rol_vendedor;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE crear_cliente(VARCHAR, VARCHAR, VARCHAR, VARCHAR, JSONB) TO rol_administrador, rol_gerente, rol_vendedor;
 GRANT EXECUTE ON PROCEDURE registrar_venta(INT, INT, INT, JSONB, INT, NUMERIC) TO rol_administrador, rol_gerente, rol_vendedor;
 
 GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bodega;

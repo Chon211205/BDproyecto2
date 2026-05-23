@@ -65,16 +65,18 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(
       `
-      INSERT INTO cliente (nombreCliente, apellidoCliente, correoCliente, telefonoCliente)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *;
+      CALL crear_cliente($1, $2, $3, $4, NULL);
       `,
       [nombreCliente, apellidoCliente, correoCliente, telefonoCliente]
     )
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json(result.rows[0].p_cliente)
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear cliente' })
+    console.error('Error al ejecutar stored procedure crear_cliente:', error.message)
+    res.status(500).json({
+      error: 'Error al crear cliente desde stored procedure.',
+      detalle: error.message
+    })
   }
 })
 
