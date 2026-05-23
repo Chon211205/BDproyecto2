@@ -56,132 +56,36 @@ router.get('/:id/detalle', async (req, res) => {
 })
 
 router.post('/registrar-transaccion', async (req, res) => {
-  const client = await db.connect()
-
   try {
     const { idCliente, idEmpleado, idMetodoPago, productos } = req.body
 
-    if (!idCliente || !idEmpleado || !idMetodoPago || !productos || productos.length === 0) {
+    if (!idCliente || !idEmpleado || !idMetodoPago || !Array.isArray(productos) || productos.length === 0) {
       return res.status(400).json({
-        error: 'Cliente, empleado, método de pago y productos son obligatorios'
+        error: 'Cliente, empleado, metodo de pago y productos son obligatorios'
       })
     }
 
-    await client.query('BEGIN')
-
-    let totalVenta = 0
-
-    for (const producto of productos) {
-      const { idProducto, cantidad } = producto
-
-      const productoResult = await client.query(
-        `
-        SELECT precio, stock
-        FROM producto
-        WHERE idProducto = $1;
-        `,
-        [idProducto]
-      )
-
-      if (productoResult.rows.length === 0) {
-        throw new Error(`Producto con ID ${idProducto} no existe`)
-      }
-
-      const nombreProducto = productoResult.rows[0].nombreproducto
-      const precio = Number(productoResult.rows[0].precio)
-      const stock = Number(productoResult.rows[0].stock)
-
-      if (cantidad <= 0) {
-        throw new Error(`La cantidad del producto ${nombreProducto} debe ser mayor a 0`)
-      }
-
-      if (cantidad > stock) {
-        throw new Error(
-          `Stock insuficiente para ${nombreProducto}. Stock disponible: ${stock}, cantidad solicitada: ${cantidad}`
-        )
-      }
-
-      totalVenta += precio * cantidad
-    }
-
-    const ventaResult = await client.query(
+    const result = await db.query(
       `
-      INSERT INTO venta (fecha, idCliente, idEmpleado, total)
-      VALUES (CURRENT_DATE, $1, $2, $3)
-      RETURNING idVenta;
+      CALL registrar_venta($1, $2, $3, $4::jsonb, NULL, NULL);
       `,
-      [idCliente, idEmpleado, totalVenta]
+      [idCliente, idEmpleado, idMetodoPago, JSON.stringify(productos)]
     )
 
-    const idVenta = ventaResult.rows[0].idventa
-
-    for (const producto of productos) {
-      const { idProducto, cantidad } = producto
-
-      const productoResult = await client.query(
-        `
-        SELECT nombreProducto, precio, stock
-        FROM producto
-        WHERE idProducto = $1;
-        `,
-        [idProducto]
-      )
-
-      const precioUnitario = Number(productoResult.rows[0].precio)
-      const subtotal = precioUnitario * cantidad
-
-      await client.query(
-        `
-        INSERT INTO detalle_venta (idVenta, idProducto, cantidad, precioUnitario, subtotal)
-        VALUES ($1, $2, $3, $4, $5);
-        `,
-        [idVenta, idProducto, cantidad, precioUnitario, subtotal]
-      )
-
-      await client.query(
-        `
-        UPDATE producto
-        SET stock = stock - $1
-        WHERE idProducto = $2;
-        `,
-        [cantidad, idProducto]
-      )
-
-      await client.query(
-        `
-        INSERT INTO inventario_movimiento (tipo, cantidad, fecha, idProducto)
-        VALUES ('salida', $1, CURRENT_DATE, $2);
-        `,
-        [cantidad, idProducto]
-      )
-    }
-
-    await client.query(
-      `
-      INSERT INTO pago (idVenta, idMetodoPago, monto, fecha)
-      VALUES ($1, $2, $3, CURRENT_DATE);
-      `,
-      [idVenta, idMetodoPago, totalVenta]
-    )
-
-    await client.query('COMMIT')
+    const ventaRegistrada = result.rows[0]
 
     res.status(201).json({
-      mensaje: 'Venta registrada correctamente con transacción',
-      idVenta,
-      total: totalVenta
+      mensaje: 'Venta registrada correctamente con stored procedure',
+      idVenta: ventaRegistrada.p_id_venta,
+      total: Number(ventaRegistrada.p_total)
     })
   } catch (error) {
-    await client.query('ROLLBACK')
-
-    console.error('Error en transacción:', error.message)
+    console.error('Error al ejecutar stored procedure registrar_venta:', error.message)
 
     res.status(500).json({
-      error: 'Error al registrar venta. Se aplicó ROLLBACK.',
+      error: 'Error al registrar venta desde stored procedure.',
       detalle: error.message
     })
-  } finally {
-    client.release()
   }
 })
 

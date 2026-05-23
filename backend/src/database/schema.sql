@@ -100,6 +100,130 @@ CREATE TABLE pago (
         FOREIGN KEY (idMetodoPago) REFERENCES metodo_pago(idMetodoPago)
 );
 
+CREATE OR REPLACE PROCEDURE registrar_venta(
+    IN p_id_cliente INT,
+    IN p_id_empleado INT,
+    IN p_id_metodo_pago INT,
+    IN p_productos JSONB,
+    INOUT p_id_venta INT,
+    INOUT p_total NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_producto JSONB;
+    v_id_producto INT;
+    v_cantidad INT;
+    v_nombre_producto VARCHAR(150);
+    v_precio NUMERIC(10,2);
+    v_stock INT;
+    v_subtotal NUMERIC(10,2);
+    v_id_detalle INT;
+    v_id_movimiento INT;
+    v_id_pago INT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM cliente WHERE idCliente = p_id_cliente) THEN
+        RAISE EXCEPTION 'Cliente con ID % no existe', p_id_cliente;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM empleado WHERE idEmpleado = p_id_empleado) THEN
+        RAISE EXCEPTION 'Empleado con ID % no existe', p_id_empleado;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM metodo_pago WHERE idMetodoPago = p_id_metodo_pago) THEN
+        RAISE EXCEPTION 'Metodo de pago con ID % no existe', p_id_metodo_pago;
+    END IF;
+
+    IF p_productos IS NULL
+        OR jsonb_typeof(p_productos) <> 'array'
+        OR jsonb_array_length(p_productos) = 0 THEN
+        RAISE EXCEPTION 'La venta debe incluir al menos un producto';
+    END IF;
+
+    LOCK TABLE venta, detalle_venta, pago, inventario_movimiento IN EXCLUSIVE MODE;
+
+    p_total := 0;
+
+    FOR v_producto IN SELECT * FROM jsonb_array_elements(p_productos)
+    LOOP
+        v_id_producto := (v_producto ->> 'idProducto')::INT;
+        v_cantidad := (v_producto ->> 'cantidad')::INT;
+
+        IF v_id_producto IS NULL OR v_cantidad IS NULL THEN
+            RAISE EXCEPTION 'Cada producto debe incluir idProducto y cantidad';
+        END IF;
+
+        SELECT nombreProducto, precio, stock
+        INTO v_nombre_producto, v_precio, v_stock
+        FROM producto
+        WHERE idProducto = v_id_producto
+        FOR UPDATE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Producto con ID % no existe', v_id_producto;
+        END IF;
+
+        IF v_cantidad <= 0 THEN
+            RAISE EXCEPTION 'La cantidad del producto % debe ser mayor a 0', v_nombre_producto;
+        END IF;
+
+        IF v_cantidad > v_stock THEN
+            RAISE EXCEPTION 'Stock insuficiente para %. Stock disponible: %, cantidad solicitada: %',
+                v_nombre_producto, v_stock, v_cantidad;
+        END IF;
+
+        p_total := p_total + (v_precio * v_cantidad);
+    END LOOP;
+
+    SELECT COALESCE(MAX(idVenta), 0) + 1 INTO p_id_venta FROM venta;
+
+    INSERT INTO venta (idVenta, fecha, idCliente, idEmpleado, total)
+    VALUES (p_id_venta, CURRENT_DATE, p_id_cliente, p_id_empleado, p_total);
+
+    FOR v_producto IN SELECT * FROM jsonb_array_elements(p_productos)
+    LOOP
+        v_id_producto := (v_producto ->> 'idProducto')::INT;
+        v_cantidad := (v_producto ->> 'cantidad')::INT;
+
+        SELECT nombreProducto, precio, stock
+        INTO v_nombre_producto, v_precio, v_stock
+        FROM producto
+        WHERE idProducto = v_id_producto
+        FOR UPDATE;
+
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'Producto con ID % no existe', v_id_producto;
+        END IF;
+
+        IF v_cantidad > v_stock THEN
+            RAISE EXCEPTION 'Stock insuficiente para %. Stock disponible: %, cantidad solicitada: %',
+                v_nombre_producto, v_stock, v_cantidad;
+        END IF;
+
+        v_subtotal := v_precio * v_cantidad;
+
+        SELECT COALESCE(MAX(idDetalle), 0) + 1 INTO v_id_detalle FROM detalle_venta;
+
+        INSERT INTO detalle_venta (idDetalle, idVenta, idProducto, cantidad, precioUnitario, subtotal)
+        VALUES (v_id_detalle, p_id_venta, v_id_producto, v_cantidad, v_precio, v_subtotal);
+
+        UPDATE producto
+        SET stock = stock - v_cantidad
+        WHERE idProducto = v_id_producto;
+
+        SELECT COALESCE(MAX(idMovimiento), 0) + 1 INTO v_id_movimiento FROM inventario_movimiento;
+
+        INSERT INTO inventario_movimiento (idMovimiento, tipo, cantidad, fecha, idProducto)
+        VALUES (v_id_movimiento, 'salida', v_cantidad, CURRENT_DATE, v_id_producto);
+    END LOOP;
+
+    SELECT COALESCE(MAX(idPago), 0) + 1 INTO v_id_pago FROM pago;
+
+    INSERT INTO pago (idPago, idVenta, idMetodoPago, monto, fecha)
+    VALUES (v_id_pago, p_id_venta, p_id_metodo_pago, p_total, CURRENT_DATE);
+END;
+$$;
+
 CREATE VIEW vista_ventas_completas AS
 SELECT
     v.idVenta,
@@ -182,6 +306,7 @@ GRANT SELECT, INSERT, UPDATE ON cliente, direccion_cliente TO rol_vendedor;
 GRANT SELECT, INSERT ON venta, detalle_venta, pago, inventario_movimiento TO rol_vendedor;
 GRANT UPDATE (stock) ON producto TO rol_vendedor;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE registrar_venta(INT, INT, INT, JSONB, INT, NUMERIC) TO rol_administrador, rol_gerente, rol_vendedor;
 
 GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bodega;
 GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
