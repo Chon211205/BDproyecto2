@@ -60,17 +60,18 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(
       `
-      INSERT INTO proveedor (nombreProveedor, telefonoProveedor, correoProveedor)
-      VALUES ($1, $2, $3)
-      RETURNING *;
+      CALL crear_proveedor($1, $2, $3, NULL);
       `,
       [nombreProveedor, telefonoProveedor, correoProveedor]
     )
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json(result.rows[0].p_proveedor)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: 'Error al crear proveedor' })
+    console.error('Error al ejecutar stored procedure crear_proveedor:', error.message)
+    res.status(500).json({
+      error: 'Error al crear proveedor desde stored procedure.',
+      detalle: error.message
+    })
   }
 })
 

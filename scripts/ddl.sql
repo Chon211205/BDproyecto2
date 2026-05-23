@@ -278,6 +278,54 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE crear_proveedor(
+    IN p_nombre_proveedor VARCHAR,
+    IN p_telefono_proveedor VARCHAR,
+    IN p_correo_proveedor VARCHAR,
+    INOUT p_proveedor JSONB
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_proveedor INT;
+    v_proveedor_creado proveedor%ROWTYPE;
+BEGIN
+    IF p_nombre_proveedor IS NULL OR LENGTH(TRIM(p_nombre_proveedor)) = 0 THEN
+        RAISE EXCEPTION 'El nombre del proveedor es obligatorio';
+    END IF;
+
+    IF p_telefono_proveedor IS NULL OR LENGTH(TRIM(p_telefono_proveedor)) = 0 THEN
+        RAISE EXCEPTION 'El telefono del proveedor es obligatorio';
+    END IF;
+
+    IF p_correo_proveedor IS NULL OR LENGTH(TRIM(p_correo_proveedor)) = 0 THEN
+        RAISE EXCEPTION 'El correo del proveedor es obligatorio';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM proveedor WHERE correoProveedor = p_correo_proveedor) THEN
+        RAISE EXCEPTION 'Ya existe un proveedor con el correo %', p_correo_proveedor;
+    END IF;
+
+    LOCK TABLE proveedor IN EXCLUSIVE MODE;
+
+    SELECT COALESCE(MAX(idProveedor), 0) + 1
+    INTO v_id_proveedor
+    FROM proveedor;
+
+    INSERT INTO proveedor (idProveedor, nombreProveedor, telefonoProveedor, correoProveedor)
+    VALUES (v_id_proveedor, p_nombre_proveedor, p_telefono_proveedor, p_correo_proveedor)
+    RETURNING *
+    INTO v_proveedor_creado;
+
+    p_proveedor := jsonb_build_object(
+        'idproveedor', v_proveedor_creado.idProveedor,
+        'nombreproveedor', v_proveedor_creado.nombreProveedor,
+        'telefonoproveedor', v_proveedor_creado.telefonoProveedor,
+        'correoproveedor', v_proveedor_creado.correoProveedor
+    );
+END;
+$$;
+
 CREATE OR REPLACE PROCEDURE crear_producto(
     IN p_nombre_producto VARCHAR,
     IN p_precio NUMERIC,
@@ -524,6 +572,7 @@ GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bod
 GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
 GRANT INSERT ON inventario_movimiento TO rol_bodega;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_bodega;
+GRANT EXECUTE ON PROCEDURE crear_proveedor(VARCHAR, VARCHAR, VARCHAR, JSONB) TO rol_administrador, rol_gerente;
 GRANT EXECUTE ON PROCEDURE crear_producto(VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN) TO rol_administrador, rol_gerente, rol_bodega;
 GRANT EXECUTE ON PROCEDURE actualizar_producto(INT, VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN, INT) TO rol_administrador, rol_gerente, rol_bodega;
 
