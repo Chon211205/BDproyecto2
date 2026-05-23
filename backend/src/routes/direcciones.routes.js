@@ -1,54 +1,48 @@
 const express = require('express')
-const db = require('../database/db')
+const { Cliente, DireccionCliente } = require('../models')
+const sequelize = require('../database/orm')
+const getNextId = require('../utils/nextId')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        d.idDireccion,
-        d.direccionCliente,
-        d.ciudad,
-        d.idCliente,
-        c.nombreCliente || ' ' || c.apellidoCliente AS cliente
-      FROM direccion_cliente d
-      JOIN cliente c ON d.idCliente = c.idCliente
-      ORDER BY d.idDireccion;
-    `)
+    const direcciones = await DireccionCliente.findAll({
+      include: [{ model: Cliente, as: 'cliente' }],
+      order: [['iddireccion', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(
+      direcciones.map(direccion => {
+        const item = direccion.toJSON()
+
+        return {
+          iddireccion: item.iddireccion,
+          direccioncliente: item.direccioncliente,
+          ciudad: item.ciudad,
+          idcliente: item.idcliente,
+          cliente: `${item.cliente.nombrecliente} ${item.cliente.apellidocliente}`
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener direcciones' })
+    res.status(500).json({ error: 'Error al obtener direcciones con ORM' })
   }
 })
 
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const direccion = await DireccionCliente.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      SELECT 
-        idDireccion,
-        direccionCliente,
-        ciudad,
-        idCliente
-      FROM direccion_cliente
-      WHERE idDireccion = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Dirección no encontrada' })
+    if (!direccion) {
+      return res.status(404).json({ error: 'Direccion no encontrada' })
     }
 
-    res.json(result.rows[0])
+    res.json(direccion)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener dirección' })
+    res.status(500).json({ error: 'Error al obtener direccion con ORM' })
   }
 })
 
@@ -60,75 +54,76 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      INSERT INTO direccion_cliente (direccionCliente, ciudad, idCliente)
-      VALUES ($1, $2, $3)
-      RETURNING *;
-      `,
-      [direccionCliente, ciudad, idCliente]
-    )
+    const cliente = await Cliente.findByPk(Number(idCliente))
 
-    res.status(201).json(result.rows[0])
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' })
+    }
+
+    const direccion = await sequelize.transaction(async transaction => {
+      return DireccionCliente.create({
+        iddireccion: await getNextId(DireccionCliente, 'iddireccion', { transaction }),
+        direccioncliente: direccionCliente,
+        ciudad,
+        idcliente: Number(idCliente)
+      }, { transaction })
+    })
+
+    res.status(201).json(direccion)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al crear dirección' })
+    res.status(500).json({ error: 'Error al crear direccion con ORM' })
   }
 })
 
 router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params
     const { direccionCliente, ciudad, idCliente } = req.body
 
     if (!direccionCliente || !ciudad || !idCliente) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      UPDATE direccion_cliente
-      SET direccionCliente = $1,
-          ciudad = $2,
-          idCliente = $3
-      WHERE idDireccion = $4
-      RETURNING *;
-      `,
-      [direccionCliente, ciudad, idCliente, id]
-    )
+    const [direccion, cliente] = await Promise.all([
+      DireccionCliente.findByPk(Number(req.params.id)),
+      Cliente.findByPk(Number(idCliente))
+    ])
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Dirección no encontrada' })
+    if (!direccion) {
+      return res.status(404).json({ error: 'Direccion no encontrada' })
     }
 
-    res.json(result.rows[0])
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado' })
+    }
+
+    await direccion.update({
+      direccioncliente: direccionCliente,
+      ciudad,
+      idcliente: Number(idCliente)
+    })
+
+    res.json(direccion)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al actualizar dirección' })
+    res.status(500).json({ error: 'Error al actualizar direccion con ORM' })
   }
 })
 
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const direccion = await DireccionCliente.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      DELETE FROM direccion_cliente
-      WHERE idDireccion = $1
-      RETURNING *;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Dirección no encontrada' })
+    if (!direccion) {
+      return res.status(404).json({ error: 'Direccion no encontrada' })
     }
 
-    res.json({ mensaje: 'Dirección eliminada correctamente' })
+    await direccion.destroy()
+
+    res.json({ mensaje: 'Direccion eliminada correctamente con ORM' })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al eliminar dirección' })
+    res.status(500).json({ error: 'Error al eliminar direccion con ORM' })
   }
 })
 

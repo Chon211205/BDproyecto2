@@ -1,60 +1,53 @@
 const express = require('express')
-const db = require('../database/db')
+const { Categoria, Producto, Proveedor } = require('../models')
+const sequelize = require('../database/orm')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        p.idProducto,
-        p.nombreProducto,
-        p.precio,
-        p.stock,
-        p.idCategoria,
-        c.nombreCategoria,
-        p.idProveedor,
-        pr.nombreProveedor
-      FROM producto p
-      JOIN categoria c ON p.idCategoria = c.idCategoria
-      JOIN proveedor pr ON p.idProveedor = pr.idProveedor
-      ORDER BY p.idProducto;
-    `)
+    const productos = await Producto.findAll({
+      include: [
+        { model: Categoria, as: 'categoria' },
+        { model: Proveedor, as: 'proveedor' }
+      ],
+      order: [['idproducto', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(
+      productos.map(producto => {
+        const item = producto.toJSON()
+
+        return {
+          idproducto: item.idproducto,
+          nombreproducto: item.nombreproducto,
+          precio: item.precio,
+          stock: item.stock,
+          idcategoria: item.idcategoria,
+          nombrecategoria: item.categoria.nombrecategoria,
+          idproveedor: item.idproveedor,
+          nombreproveedor: item.proveedor.nombreproveedor
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener productos' })
+    res.status(500).json({ error: 'Error al obtener productos con ORM' })
   }
 })
 
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const producto = await Producto.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      SELECT 
-        idProducto,
-        nombreProducto,
-        precio,
-        stock,
-        idCategoria,
-        idProveedor
-      FROM producto
-      WHERE idProducto = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' })
     }
 
-    res.json(result.rows[0])
+    res.json(producto)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener producto' })
+    res.status(500).json({ error: 'Error al obtener producto con ORM' })
   }
 })
 
@@ -66,19 +59,19 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
+    const [result] = await sequelize.query(
       `
       CALL crear_producto($1, $2, $3, $4, $5, NULL, NULL);
       `,
-      [nombreProducto, Number(precio), Number(stock), Number(idCategoria), Number(idProveedor)]
+      { bind: [nombreProducto, Number(precio), Number(stock), Number(idCategoria), Number(idProveedor)] }
     )
 
     res.status(201).json({
-      ...result.rows[0].p_producto,
-      movimientoRegistrado: result.rows[0].p_movimiento_registrado
+      ...result[0].p_producto,
+      movimientoRegistrado: result[0].p_movimiento_registrado
     })
   } catch (error) {
-    console.error('Error al ejecutar stored procedure crear_producto:', error.message)
+    console.error('Error al ejecutar stored procedure crear_producto desde ORM:', error.message)
     res.status(500).json({
       error: 'Error al crear producto desde stored procedure.',
       detalle: error.message
@@ -88,21 +81,29 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params
     const { nombreProducto, precio, stock, idCategoria, idProveedor } = req.body
 
     if (!nombreProducto || precio === undefined || stock === undefined || !idCategoria || !idProveedor) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
+    const [result] = await sequelize.query(
       `
       CALL actualizar_producto($1, $2, $3, $4, $5, $6, NULL, NULL, NULL);
       `,
-      [Number(id), nombreProducto, Number(precio), Number(stock), Number(idCategoria), Number(idProveedor)]
+      {
+        bind: [
+          Number(req.params.id),
+          nombreProducto,
+          Number(precio),
+          Number(stock),
+          Number(idCategoria),
+          Number(idProveedor)
+        ]
+      }
     )
 
-    const productoActualizado = result.rows[0]
+    const productoActualizado = result[0]
 
     res.json({
       mensaje: 'Producto actualizado correctamente con stored procedure',
@@ -111,7 +112,7 @@ router.put('/:id', async (req, res) => {
       diferenciaStock: productoActualizado.p_diferencia_stock
     })
   } catch (error) {
-    console.error('Error al ejecutar stored procedure actualizar_producto:', error.message)
+    console.error('Error al ejecutar stored procedure actualizar_producto desde ORM:', error.message)
 
     if (error.message.includes('Producto con ID')) {
       return res.status(404).json({ error: 'Producto no encontrado' })
@@ -126,25 +127,18 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const producto = await Producto.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      DELETE FROM producto
-      WHERE idProducto = $1
-      RETURNING *;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' })
     }
 
-    res.json({ mensaje: 'Producto eliminado correctamente' })
+    await producto.destroy()
+
+    res.json({ mensaje: 'Producto eliminado correctamente con ORM' })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al eliminar producto' })
+    res.status(500).json({ error: 'Error al eliminar producto con ORM' })
   }
 })
 

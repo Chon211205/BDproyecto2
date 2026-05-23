@@ -7,6 +7,7 @@ const ROLES = {
 }
 
 const ALL_ROLES = Object.values(ROLES)
+const { Usuario } = require('../models')
 
 function getRequestRole(req) {
   return req.header('x-user-role')
@@ -22,16 +23,9 @@ function requireRole(allowedRoles) {
     }
 
     try {
-      const result = await db.query(
-        `
-        SELECT rol
-        FROM usuario
-        WHERE idUsuario = $1;
-        `,
-        [userId]
-      )
+      const usuario = await Usuario.findByPk(Number(userId))
 
-      if (result.rows.length === 0 || result.rows[0].rol !== role) {
+      if (!usuario || usuario.rol !== role) {
         return res.status(401).json({ error: 'Sesion invalida' })
       }
 
@@ -60,4 +54,3 @@ module.exports = {
   requireRole,
   requireRoleByMethod
 }
-const db = require('../database/db')

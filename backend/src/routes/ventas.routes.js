@@ -1,57 +1,70 @@
 const express = require('express')
-const db = require('../database/db')
+const sequelize = require('../database/orm')
+const { Cliente, DetalleVenta, Empleado, MetodoPago, Pago, Producto, Venta } = require('../models')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        v.idVenta,
-        v.fecha,
-        c.nombreCliente || ' ' || c.apellidoCliente AS cliente,
-        e.nombreEmpleado || ' ' || e.apellidoEmpleado AS empleado,
-        p.monto AS montoPagado,
-        mp.tipoMetodoPago AS metodoPago
-      FROM venta v
-      JOIN cliente c ON v.idCliente = c.idCliente
-      JOIN empleado e ON v.idEmpleado = e.idEmpleado
-      LEFT JOIN pago p ON v.idVenta = p.idVenta
-      LEFT JOIN metodo_pago mp ON p.idMetodoPago = mp.idMetodoPago
-      ORDER BY v.idVenta;
-    `)
+    const ventas = await Venta.findAll({
+      include: [
+        { model: Cliente, as: 'cliente' },
+        { model: Empleado, as: 'empleado' },
+        {
+          model: Pago,
+          as: 'pagos',
+          required: false,
+          include: [{ model: MetodoPago, as: 'metodoPago', required: false }]
+        }
+      ],
+      order: [['idventa', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(
+      ventas.map(venta => {
+        const item = venta.toJSON()
+        const pago = item.pagos[0]
+
+        return {
+          idventa: item.idventa,
+          fecha: item.fecha,
+          cliente: `${item.cliente.nombrecliente} ${item.cliente.apellidocliente}`,
+          empleado: `${item.empleado.nombreempleado} ${item.empleado.apellidoempleado}`,
+          montopagado: pago?.monto || null,
+          metodopago: pago?.metodoPago?.tipometodopago || null
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener ventas' })
+    res.status(500).json({ error: 'Error al obtener ventas con ORM' })
   }
 })
 
 router.get('/:id/detalle', async (req, res) => {
   try {
-    const { id } = req.params
+    const detalles = await DetalleVenta.findAll({
+      where: { idventa: Number(req.params.id) },
+      include: [{ model: Producto, as: 'producto' }],
+      order: [['iddetalle', 'ASC']]
+    })
 
-    const result = await db.query(
-      `
-      SELECT
-        dv.idDetalle,
-        p.nombreProducto,
-        dv.cantidad,
-        dv.precioUnitario,
-        dv.subtotal
-      FROM detalle_venta dv
-      JOIN producto p ON dv.idProducto = p.idProducto
-      WHERE dv.idVenta = $1
-      ORDER BY dv.idDetalle;
-      `,
-      [id]
+    res.json(
+      detalles.map(detalle => {
+        const item = detalle.toJSON()
+
+        return {
+          iddetalle: item.iddetalle,
+          nombreproducto: item.producto.nombreproducto,
+          cantidad: item.cantidad,
+          preciounitario: item.preciounitario,
+          subtotal: item.subtotal
+        }
+      })
     )
-
-    res.json(result.rows)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener detalle de venta' })
+    res.status(500).json({ error: 'Error al obtener detalle de venta con ORM' })
   }
 })
 
@@ -65,14 +78,14 @@ router.post('/registrar-transaccion', async (req, res) => {
       })
     }
 
-    const result = await db.query(
+    const [result] = await sequelize.query(
       `
       CALL registrar_venta($1, $2, $3, $4::jsonb, NULL, NULL);
       `,
-      [idCliente, idEmpleado, idMetodoPago, JSON.stringify(productos)]
+      { bind: [idCliente, idEmpleado, idMetodoPago, JSON.stringify(productos)] }
     )
 
-    const ventaRegistrada = result.rows[0]
+    const ventaRegistrada = result[0]
 
     res.status(201).json({
       mensaje: 'Venta registrada correctamente con stored procedure',
@@ -80,7 +93,7 @@ router.post('/registrar-transaccion', async (req, res) => {
       total: Number(ventaRegistrada.p_total)
     })
   } catch (error) {
-    console.error('Error al ejecutar stored procedure registrar_venta:', error.message)
+    console.error('Error al ejecutar stored procedure registrar_venta desde ORM:', error.message)
 
     res.status(500).json({
       error: 'Error al registrar venta desde stored procedure.',

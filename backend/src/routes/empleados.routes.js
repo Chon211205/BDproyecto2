@@ -1,52 +1,35 @@
 const express = require('express')
-const db = require('../database/db')
+const { Empleado } = require('../models')
+const sequelize = require('../database/orm')
+const getNextId = require('../utils/nextId')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        idEmpleado,
-        nombreEmpleado,
-        apellidoEmpleado,
-        puesto
-      FROM empleado
-      ORDER BY idEmpleado;
-    `)
+    const empleados = await Empleado.findAll({
+      order: [['idempleado', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(empleados)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener empleados' })
+    res.status(500).json({ error: 'Error al obtener empleados con ORM' })
   }
 })
 
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const empleado = await Empleado.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      SELECT 
-        idEmpleado,
-        nombreEmpleado,
-        apellidoEmpleado,
-        puesto
-      FROM empleado
-      WHERE idEmpleado = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!empleado) {
       return res.status(404).json({ error: 'Empleado no encontrado' })
     }
 
-    res.json(result.rows[0])
+    res.json(empleado)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener empleado' })
+    res.status(500).json({ error: 'Error al obtener empleado con ORM' })
   }
 })
 
@@ -58,76 +41,64 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      INSERT INTO empleado (nombreEmpleado, apellidoEmpleado, puesto)
-      VALUES ($1, $2, $3)
-      RETURNING *;
-      `,
-      [nombreEmpleado, apellidoEmpleado, puesto]
-    )
+    const empleado = await sequelize.transaction(async transaction => {
+      return Empleado.create({
+        idempleado: await getNextId(Empleado, 'idempleado', { transaction }),
+        nombreempleado: nombreEmpleado,
+        apellidoempleado: apellidoEmpleado,
+        puesto
+      }, { transaction })
+    })
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json(empleado)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al crear empleado' })
+    res.status(500).json({ error: 'Error al crear empleado con ORM' })
   }
 })
 
 router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params
     const { nombreEmpleado, apellidoEmpleado, puesto } = req.body
 
     if (!nombreEmpleado || !apellidoEmpleado || !puesto) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      UPDATE empleado
-      SET nombreEmpleado = $1,
-          apellidoEmpleado = $2,
-          puesto = $3
-      WHERE idEmpleado = $4
-      RETURNING *;
-      `,
-      [nombreEmpleado, apellidoEmpleado, puesto, id]
-    )
+    const empleado = await Empleado.findByPk(Number(req.params.id))
 
-    if (result.rows.length === 0) {
+    if (!empleado) {
       return res.status(404).json({ error: 'Empleado no encontrado' })
     }
 
-    res.json(result.rows[0])
+    await empleado.update({
+      nombreempleado: nombreEmpleado,
+      apellidoempleado: apellidoEmpleado,
+      puesto
+    })
+
+    res.json(empleado)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al actualizar empleado' })
+    res.status(500).json({ error: 'Error al actualizar empleado con ORM' })
   }
 })
 
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const empleado = await Empleado.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      DELETE FROM empleado
-      WHERE idEmpleado = $1
-      RETURNING *;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!empleado) {
       return res.status(404).json({ error: 'Empleado no encontrado' })
     }
 
-    res.json({ mensaje: 'Empleado eliminado correctamente' })
+    await empleado.destroy()
+
+    res.json({ mensaje: 'Empleado eliminado correctamente con ORM' })
   } catch (error) {
     console.error(error)
     res.status(500).json({
-      error: 'Error al eliminar empleado. Puede estar asociado a ventas.'
+      error: 'Error al eliminar empleado con ORM. Puede estar asociado a ventas.'
     })
   }
 })

@@ -1,5 +1,6 @@
 const express = require('express')
 const Categoria = require('../models/categoria.model')
+const sequelize = require('../database/orm')
 
 const router = express.Router()
 
@@ -40,11 +41,14 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const ultimoId = await Categoria.max('idcategoria')
-    const categoria = await Categoria.create({
-      idcategoria: Number(ultimoId || 0) + 1,
-      nombrecategoria: nombreCategoria,
-      descripcioncategoria: descripcionCategoria
+    const categoria = await sequelize.transaction(async transaction => {
+      const ultimoId = await Categoria.max('idcategoria', { transaction })
+
+      return Categoria.create({
+        idcategoria: Number(ultimoId || 0) + 1,
+        nombrecategoria: nombreCategoria,
+        descripcioncategoria: descripcionCategoria
+      }, { transaction })
     })
 
     res.status(201).json(categoria)

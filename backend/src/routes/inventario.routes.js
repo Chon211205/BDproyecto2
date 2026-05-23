@@ -1,26 +1,35 @@
 const express = require('express')
-const db = require('../database/db')
+const { InventarioMovimiento, Producto } = require('../models')
+const sequelize = require('../database/orm')
 
 const router = express.Router()
 
 router.get('/movimientos', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        im.idMovimiento,
-        p.nombreProducto,
-        im.tipo,
-        im.cantidad,
-        im.fecha
-      FROM inventario_movimiento im
-      JOIN producto p ON im.idProducto = p.idProducto
-      ORDER BY im.fecha DESC, im.idMovimiento DESC;
-    `)
+    const movimientos = await InventarioMovimiento.findAll({
+      include: [{ model: Producto, as: 'producto' }],
+      order: [
+        ['fecha', 'DESC'],
+        ['idmovimiento', 'DESC']
+      ]
+    })
 
-    res.json(result.rows)
+    res.json(
+      movimientos.map(movimiento => {
+        const item = movimiento.toJSON()
+
+        return {
+          idmovimiento: item.idmovimiento,
+          nombreproducto: item.producto.nombreproducto,
+          tipo: item.tipo,
+          cantidad: item.cantidad,
+          fecha: item.fecha
+        }
+      })
+    )
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener movimientos de inventario' })
+    res.status(500).json({ error: 'Error al obtener movimientos de inventario con ORM' })
   }
 })
 
@@ -32,18 +41,18 @@ router.post('/probar-rollback', async (req, res) => {
       return res.status(400).json({ error: 'Producto y cantidad son obligatorios' })
     }
 
-    await db.query(
+    await sequelize.query(
       `
       CALL probar_rollback_inventario($1, $2);
       `,
-      [Number(idProducto), Number(cantidad)]
+      { bind: [Number(idProducto), Number(cantidad)] }
     )
 
     res.json({
       mensaje: 'Stored procedure ejecutado correctamente; el movimiento fue revertido con ROLLBACK'
     })
   } catch (error) {
-    console.error('Error al ejecutar stored procedure probar_rollback_inventario:', error.message)
+    console.error('Error al ejecutar stored procedure probar_rollback_inventario desde ORM:', error.message)
 
     res.status(500).json({
       error: 'Error al probar ROLLBACK desde stored procedure.',

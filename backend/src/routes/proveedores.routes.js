@@ -1,52 +1,34 @@
 const express = require('express')
-const db = require('../database/db')
+const { Proveedor } = require('../models')
+const sequelize = require('../database/orm')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        idProveedor,
-        nombreProveedor,
-        telefonoProveedor,
-        correoProveedor
-      FROM proveedor
-      ORDER BY idProveedor;
-    `)
+    const proveedores = await Proveedor.findAll({
+      order: [['idproveedor', 'ASC']]
+    })
 
-    res.json(result.rows)
+    res.json(proveedores)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener proveedores' })
+    res.status(500).json({ error: 'Error al obtener proveedores con ORM' })
   }
 })
 
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const proveedor = await Proveedor.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      SELECT 
-        idProveedor,
-        nombreProveedor,
-        telefonoProveedor,
-        correoProveedor
-      FROM proveedor
-      WHERE idProveedor = $1;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!proveedor) {
       return res.status(404).json({ error: 'Proveedor no encontrado' })
     }
 
-    res.json(result.rows[0])
+    res.json(proveedor)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al obtener proveedor' })
+    res.status(500).json({ error: 'Error al obtener proveedor con ORM' })
   }
 })
 
@@ -58,16 +40,16 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
+    const [result] = await sequelize.query(
       `
       CALL crear_proveedor($1, $2, $3, NULL);
       `,
-      [nombreProveedor, telefonoProveedor, correoProveedor]
+      { bind: [nombreProveedor, telefonoProveedor, correoProveedor] }
     )
 
-    res.status(201).json(result.rows[0].p_proveedor)
+    res.status(201).json(result[0].p_proveedor)
   } catch (error) {
-    console.error('Error al ejecutar stored procedure crear_proveedor:', error.message)
+    console.error('Error al ejecutar stored procedure crear_proveedor desde ORM:', error.message)
     res.status(500).json({
       error: 'Error al crear proveedor desde stored procedure.',
       detalle: error.message
@@ -77,58 +59,46 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { id } = req.params
     const { nombreProveedor, telefonoProveedor, correoProveedor } = req.body
 
     if (!nombreProveedor || !telefonoProveedor || !correoProveedor) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    const result = await db.query(
-      `
-      UPDATE proveedor
-      SET nombreProveedor = $1,
-          telefonoProveedor = $2,
-          correoProveedor = $3
-      WHERE idProveedor = $4
-      RETURNING *;
-      `,
-      [nombreProveedor, telefonoProveedor, correoProveedor, id]
-    )
+    const proveedor = await Proveedor.findByPk(Number(req.params.id))
 
-    if (result.rows.length === 0) {
+    if (!proveedor) {
       return res.status(404).json({ error: 'Proveedor no encontrado' })
     }
 
-    res.json(result.rows[0])
+    await proveedor.update({
+      nombreproveedor: nombreProveedor,
+      telefonoproveedor: telefonoProveedor,
+      correoproveedor: correoProveedor
+    })
+
+    res.json(proveedor)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Error al actualizar proveedor' })
+    res.status(500).json({ error: 'Error al actualizar proveedor con ORM' })
   }
 })
 
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params
+    const proveedor = await Proveedor.findByPk(Number(req.params.id))
 
-    const result = await db.query(
-      `
-      DELETE FROM proveedor
-      WHERE idProveedor = $1
-      RETURNING *;
-      `,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!proveedor) {
       return res.status(404).json({ error: 'Proveedor no encontrado' })
     }
 
-    res.json({ mensaje: 'Proveedor eliminado correctamente' })
+    await proveedor.destroy()
+
+    res.json({ mensaje: 'Proveedor eliminado correctamente con ORM' })
   } catch (error) {
     console.error(error)
     res.status(500).json({
-      error: 'Error al eliminar proveedor. Puede estar asociado a productos.'
+      error: 'Error al eliminar proveedor con ORM. Puede estar asociado a productos.'
     })
   }
 })
