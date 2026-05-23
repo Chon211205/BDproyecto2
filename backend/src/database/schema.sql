@@ -224,6 +224,94 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE actualizar_producto(
+    IN p_id_producto INT,
+    IN p_nombre_producto VARCHAR,
+    IN p_precio NUMERIC,
+    IN p_stock INT,
+    IN p_id_categoria INT,
+    IN p_id_proveedor INT,
+    INOUT p_producto JSONB,
+    INOUT p_movimiento_registrado BOOLEAN,
+    INOUT p_diferencia_stock INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_stock_anterior INT;
+    v_tipo_movimiento VARCHAR(20);
+    v_cantidad_movimiento INT;
+    v_id_movimiento INT;
+    v_producto_actualizado producto%ROWTYPE;
+BEGIN
+    IF p_nombre_producto IS NULL OR LENGTH(TRIM(p_nombre_producto)) = 0 THEN
+        RAISE EXCEPTION 'El nombre del producto es obligatorio';
+    END IF;
+
+    IF p_precio IS NULL OR p_precio < 0 THEN
+        RAISE EXCEPTION 'El precio debe ser mayor o igual a 0';
+    END IF;
+
+    IF p_stock IS NULL OR p_stock < 0 THEN
+        RAISE EXCEPTION 'El stock debe ser mayor o igual a 0';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM categoria WHERE idCategoria = p_id_categoria) THEN
+        RAISE EXCEPTION 'Categoria con ID % no existe', p_id_categoria;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM proveedor WHERE idProveedor = p_id_proveedor) THEN
+        RAISE EXCEPTION 'Proveedor con ID % no existe', p_id_proveedor;
+    END IF;
+
+    SELECT stock
+    INTO v_stock_anterior
+    FROM producto
+    WHERE idProducto = p_id_producto
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Producto con ID % no existe', p_id_producto;
+    END IF;
+
+    p_diferencia_stock := p_stock - v_stock_anterior;
+    p_movimiento_registrado := p_diferencia_stock <> 0;
+
+    UPDATE producto
+    SET nombreProducto = p_nombre_producto,
+        precio = p_precio,
+        stock = p_stock,
+        idCategoria = p_id_categoria,
+        idProveedor = p_id_proveedor
+    WHERE idProducto = p_id_producto
+    RETURNING *
+    INTO v_producto_actualizado;
+
+    IF p_movimiento_registrado THEN
+        v_tipo_movimiento := CASE WHEN p_diferencia_stock > 0 THEN 'entrada' ELSE 'salida' END;
+        v_cantidad_movimiento := ABS(p_diferencia_stock);
+
+        LOCK TABLE inventario_movimiento IN EXCLUSIVE MODE;
+
+        SELECT COALESCE(MAX(idMovimiento), 0) + 1
+        INTO v_id_movimiento
+        FROM inventario_movimiento;
+
+        INSERT INTO inventario_movimiento (idMovimiento, tipo, cantidad, fecha, idProducto)
+        VALUES (v_id_movimiento, v_tipo_movimiento, v_cantidad_movimiento, CURRENT_DATE, p_id_producto);
+    END IF;
+
+    p_producto := jsonb_build_object(
+        'idproducto', v_producto_actualizado.idProducto,
+        'nombreproducto', v_producto_actualizado.nombreProducto,
+        'precio', v_producto_actualizado.precio,
+        'stock', v_producto_actualizado.stock,
+        'idcategoria', v_producto_actualizado.idCategoria,
+        'idproveedor', v_producto_actualizado.idProveedor
+    );
+END;
+$$;
+
 CREATE VIEW vista_ventas_completas AS
 SELECT
     v.idVenta,
@@ -312,6 +400,7 @@ GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bod
 GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
 GRANT INSERT ON inventario_movimiento TO rol_bodega;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_bodega;
+GRANT EXECUTE ON PROCEDURE actualizar_producto(INT, VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN, INT) TO rol_administrador, rol_gerente, rol_bodega;
 
 GRANT SELECT ON
     cliente,

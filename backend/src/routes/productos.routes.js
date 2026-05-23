@@ -83,83 +83,40 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const client = await db.connect()
-
   try {
     const { id } = req.params
     const { nombreProducto, precio, stock, idCategoria, idProveedor } = req.body
 
     if (!nombreProducto || precio === undefined || stock === undefined || !idCategoria || !idProveedor) {
-      client.release()
       return res.status(400).json({ error: 'Todos los campos son obligatorios' })
     }
 
-    await client.query('BEGIN')
-
-    const productoActual = await client.query(
+    const result = await db.query(
       `
-      SELECT stock
-      FROM producto
-      WHERE idProducto = $1;
+      CALL actualizar_producto($1, $2, $3, $4, $5, $6, NULL, NULL, NULL);
       `,
-      [id]
+      [Number(id), nombreProducto, Number(precio), Number(stock), Number(idCategoria), Number(idProveedor)]
     )
 
-    if (productoActual.rows.length === 0) {
-      await client.query('ROLLBACK')
+    const productoActualizado = result.rows[0]
+
+    res.json({
+      mensaje: 'Producto actualizado correctamente con stored procedure',
+      producto: productoActualizado.p_producto,
+      movimientoRegistrado: productoActualizado.p_movimiento_registrado,
+      diferenciaStock: productoActualizado.p_diferencia_stock
+    })
+  } catch (error) {
+    console.error('Error al ejecutar stored procedure actualizar_producto:', error.message)
+
+    if (error.message.includes('Producto con ID')) {
       return res.status(404).json({ error: 'Producto no encontrado' })
     }
 
-    const stockAnterior = Number(productoActual.rows[0].stock)
-    const stockNuevo = Number(stock)
-    const diferencia = stockNuevo - stockAnterior
-
-    const result = await client.query(
-      `
-      UPDATE producto
-      SET nombreProducto = $1,
-          precio = $2,
-          stock = $3,
-          idCategoria = $4,
-          idProveedor = $5
-      WHERE idProducto = $6
-      RETURNING *;
-      `,
-      [nombreProducto, Number(precio), stockNuevo, Number(idCategoria), Number(idProveedor), id]
-    )
-
-    if (diferencia !== 0) {
-      const tipoMovimiento = diferencia > 0 ? 'entrada' : 'salida'
-      const cantidadMovimiento = Math.abs(diferencia)
-
-      await client.query(
-        `
-        INSERT INTO inventario_movimiento (tipo, cantidad, fecha, idProducto)
-        VALUES ($1, $2, CURRENT_DATE, $3);
-        `,
-        [tipoMovimiento, cantidadMovimiento, id]
-      )
-    }
-
-    await client.query('COMMIT')
-
-    res.json({
-      mensaje: 'Producto actualizado correctamente',
-      producto: result.rows[0],
-      movimientoRegistrado: diferencia !== 0,
-      diferenciaStock: diferencia
-    })
-  } catch (error) {
-    await client.query('ROLLBACK')
-
-    console.error('ERROR ACTUALIZANDO PRODUCTO:', error)
-
     res.status(500).json({
-      error: 'Error al actualizar producto. Se aplicó ROLLBACK.',
+      error: 'Error al actualizar producto desde stored procedure.',
       detalle: error.message
     })
-  } finally {
-    client.release()
   }
 })
 
