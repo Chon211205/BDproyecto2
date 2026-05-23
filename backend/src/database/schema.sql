@@ -483,6 +483,36 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE probar_rollback_inventario(
+    IN p_id_producto INT,
+    IN p_cantidad INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id_movimiento INT;
+BEGIN
+    IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
+        RAISE EXCEPTION 'La cantidad debe ser mayor a 0';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM producto WHERE idProducto = p_id_producto) THEN
+        RAISE EXCEPTION 'Producto con ID % no existe', p_id_producto;
+    END IF;
+
+    LOCK TABLE inventario_movimiento IN EXCLUSIVE MODE;
+
+    SELECT COALESCE(MAX(idMovimiento), 0) + 1
+    INTO v_id_movimiento
+    FROM inventario_movimiento;
+
+    INSERT INTO inventario_movimiento (idMovimiento, tipo, cantidad, fecha, idProducto)
+    VALUES (v_id_movimiento, 'entrada', p_cantidad, CURRENT_DATE, p_id_producto);
+
+    ROLLBACK;
+END;
+$$;
+
 CREATE VIEW vista_ventas_completas AS
 SELECT
     v.idVenta,
@@ -572,6 +602,7 @@ GRANT SELECT ON categoria, proveedor, producto, inventario_movimiento TO rol_bod
 GRANT INSERT, UPDATE, DELETE ON producto TO rol_bodega;
 GRANT INSERT ON inventario_movimiento TO rol_bodega;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO rol_bodega;
+GRANT EXECUTE ON PROCEDURE probar_rollback_inventario(INT, INT) TO rol_administrador, rol_gerente, rol_bodega, rol_analista;
 GRANT EXECUTE ON PROCEDURE crear_proveedor(VARCHAR, VARCHAR, VARCHAR, JSONB) TO rol_administrador, rol_gerente;
 GRANT EXECUTE ON PROCEDURE crear_producto(VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN) TO rol_administrador, rol_gerente, rol_bodega;
 GRANT EXECUTE ON PROCEDURE actualizar_producto(INT, VARCHAR, NUMERIC, INT, INT, INT, JSONB, BOOLEAN, INT) TO rol_administrador, rol_gerente, rol_bodega;
